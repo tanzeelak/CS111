@@ -5,7 +5,13 @@
 #include <signal.h>
 
 
-int main(int arc, char* argv[])
+void seghandle(int signum) {
+  fprintf(stderr, "Segment fault");
+	  exit(2);
+}
+
+
+int main(int argc, char* argv[])
 {
   struct option long_options[] = {
     {"input", required_argument, 0, 'i'},
@@ -13,7 +19,7 @@ int main(int arc, char* argv[])
     {"segfault", no_argument, 0, 's'},
     {"catch", no_argument, 0, 'c'},
     {0,0,0,0}
-  }
+  };
 
   int option;
   int fd0, fd1;
@@ -25,27 +31,35 @@ int main(int arc, char* argv[])
         switch(option)
           {
           case 'i':
-            if ((file = fopen(argv[1], "r") != -1){
+            if (file = fopen(argv[1], "r") != -1){
 
               }
               else {
-                stderr("Error opening file");
-                exit
+                perror("Error opening file");
+                exit(2);
 		  }
 	      break;
 	    case 'o':
+	      fd1 = creat(optarg, 0666);
+	      if (fd1 > -1)
+		{
+		  
+		}
+	      else {
+		perror("Error creating file");
+		exit(2);
+	      }
 	      break;
 	    case 's':
+	      option = NULL;
 	      break;
 	    case 'c':
+	      signal(SIGSEGV, seghandle);
 	      break;
 	      }
 
 	  }
-
-	while ((c = getc(file)) != EOF)
-	  putchar(c);
-	fclose(file);
-      }
+  }
+    exit(0);
 
   }
