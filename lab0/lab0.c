@@ -6,9 +6,9 @@
 #include <fcntl.h>
 
 
-void seghandle(int signum) {
-  fprintf(stderr, "Segment fault");
-	  exit(2);
+void sighandler(int signum) {
+  fprintf(stdout, "Segment fault");
+	  exit(4);
 }
 
 static int verbose_flag;
@@ -19,6 +19,7 @@ int main(int argc, char* argv[])
   
   
   int c, fd0, fd1;
+  int seg = 0;
   while (1)
     {
       static struct option long_options[] = {
@@ -55,22 +56,30 @@ int main(int argc, char* argv[])
 	  int filedesc = open(optarg, O_RDONLY);
 	  if (filedesc != -1)
 	    dup2(filedesc, 0);
+	  else
+	    fprintf(stderr, "failed to open input file");
           break;
 
         case 'o':
           puts ("option -o\n");
-	  int out = open("out", O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
+	  int out = open(optarg, O_WRONLY | O_TRUNC | O_CREAT);
 	  if (out != -1)
 	    dup2(out, 1);
+	  else
+	    fprintf(stderr, "failed to create output file");
           break;
 
         case 's':
-          printf ("option -s with value `%s'\n", optarg);
+          printf ("option -s\n");
+	  //char* h;
+	  //h = NULL;
+	  seg = 1;
           break;
 
         case 'c':
-          printf ("option -c with value `%s'\n", optarg);
-          break;
+          printf ("option -c\n");
+          signal(SIGSEGV, sighandler);
+	  break;
 
         default:
           abort ();
@@ -93,15 +102,17 @@ int main(int argc, char* argv[])
     }
 
   
+  if (seg) {
+    char *fail = NULL;
+    *fail = 'A';
+  }
+
   char buff;
   while(read(0, &buff, 1))
     {
       write(1, &buff, 1);
     } 
 
-
-
-  //  write(fd, 
 
   exit (0);
   
