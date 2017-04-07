@@ -1,9 +1,10 @@
 #include <stdlib.h>
-#include <unistd.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <signal.h>
-#include <fctl.h>
+#include <unistd.h>
+#include <fcntl.h>
+
 
 void seghandle(int signum) {
   fprintf(stderr, "Segment fault");
@@ -14,9 +15,10 @@ static int verbose_flag;
 
 int main(int argc, char* argv[])
 {
+
   
-  int c;
   
+  int c, fd0, fd1;
   while (1)
     {
       static struct option long_options[] = {
@@ -50,10 +52,16 @@ int main(int argc, char* argv[])
 
         case 'i':
           puts ("option -i\n");
+	  int filedesc = open(optarg, O_RDONLY);
+	  if (filedesc != -1)
+	    dup2(filedesc, 0);
           break;
 
         case 'o':
           puts ("option -o\n");
+	  int out = open("out", O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
+	  if (out != -1)
+	    dup2(out, 1);
           break;
 
         case 's':
@@ -83,6 +91,17 @@ int main(int argc, char* argv[])
         printf ("%s ", argv[optind++]);
       putchar ('\n');
     }
+
+  
+  char buff;
+  while(read(0, &buff, 1))
+    {
+      write(1, &buff, 1);
+    } 
+
+
+
+  //  write(fd, 
 
   exit (0);
   
