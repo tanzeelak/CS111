@@ -25,14 +25,23 @@ int main(int argc, char* argv[])
   int fd0, fd1;
   FILE *file;
   file = fopen(argv[1], "r");
+  int option_index = 0;
   if (file) {
-    while(option = getopt_long(argc, argv, "i:o:sc", long_options, 0) != -1)
+    while((option = getopt_long(argc, argv, "i:o:sc", long_options, 0)) != -1)
       {
         switch(option)
           {
+	  case 0:
+	    if (long_options[option_index].flag != 0)
+	      break;
+	    printf("option %s", long_options[option_index].name);
+	    if (optarg)
+	      printf(" with arg %s", optarg);
+	    printf ("\n");
+	    break;
           case 'i':
-            if (file = fopen(argv[1], "r") != -1){
-
+	    if ((file = fopen(argv[1], "r")) != NULL){
+	      printf("case i");
               }
               else {
                 perror("Error opening file");
@@ -43,6 +52,7 @@ int main(int argc, char* argv[])
 	      fd1 = creat(optarg, 0666);
 	      if (fd1 > -1)
 		{
+		  printf("case o");
 		  
 		}
 	      else {
@@ -51,11 +61,16 @@ int main(int argc, char* argv[])
 	      }
 	      break;
 	    case 's':
-	      option = NULL;
+	      printf("case s");
+	      char fail = NULL;
 	      break;
 	    case 'c':
+	      printf("case c");
 	      signal(SIGSEGV, seghandle);
 	      break;
+	  default: 
+	    abort();
+	    break;
 	      }
 
 	  }
