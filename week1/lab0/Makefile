@@ -4,7 +4,7 @@ CC=gcc
 CFLAGS = -g
 
 all:
-	gcc lab0.c -o lab0
+	gcc -g lab0.c -o lab0
 
 check:	all goodinput goodoutput badoutput inandout noinandnoout canopen catchtest
 

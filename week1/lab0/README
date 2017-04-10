@@ -1,3 +1,13 @@
 NAME: Tanzeela Khan
 EMAIL: tanzeelakhan@g.ucla.edu
 ID: 204577214
+
+lab0.c:
+	This file copies standard input to standard output by using read and write with the file descriptors. getopt_long is the API used to parse the designated options. The options are as follows, --input, --output, --segfualt, --catch. 
+
+Makefile:
+	I checked for a good input file, good output file, and input and output case, no in and no output case ,bunwritable file cas,e and cannot open case. 
+
+backtrace.png:
+
+breakpoint.png:
