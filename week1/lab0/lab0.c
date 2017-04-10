@@ -18,7 +18,11 @@ static int verbose_flag;
 int main(int argc, char* argv[])
 {
   int c, fd0, fd1, filedesc, out;
+  int inflag = 0;
+  int outflag = 0;
   int seg = 0;
+  char* inopt = NULL;
+  char* outopt = NULL;
   while (1)
     {
       static struct option long_options[] = {
@@ -50,23 +54,13 @@ int main(int argc, char* argv[])
           break;
 
         case 'i':
-	  filedesc = open(optarg, O_RDONLY);
-	  if (filedesc != -1)
-	    dup2(filedesc, 0);
-	  else {
-	    fprintf(stderr, "failed to open input file", strerror(errno));
-	    exit(2);
-	  }
+	  inflag = 1;
+	  inopt = optarg;
           break;
 
         case 'o':
-	  out = open(optarg, O_WRONLY | O_TRUNC | O_CREAT);
-	  if (out != -1)
-	    dup2(out, 1);
-	  else {
-	    fprintf(stderr, "failed to create output file", strerror(errno));
-	    exit(3);
-	  }
+	  outflag = 1;
+	  outopt = optarg;
           break;
 
         case 's':
@@ -92,15 +86,28 @@ int main(int argc, char* argv[])
     puts ("verbose flag is set");
 
   /* Print any remaining command line arguments (not options). */
-  if (optind < argc)
-    {
-      printf ("non-option ARGV-elements: ");
-      while (optind < argc)
-        printf ("%s ", argv[optind++]);
-      putchar ('\n');
+    
+  if (inflag) {
+
+	  int ifd = open(inopt, O_RDONLY);
+	  if (ifd >= 0) {
+	    close(0);
+	    dup(ifd);
+	    close(ifd);
+	  }
+  }
+
+  if (outflag) {
+
+    int ofd = creat(outopt, 0666);
+    if (ofd >= 0) {
+      close(1);
+      dup(ofd);
+      close(ofd);
     }
 
-  
+  }
+
   if (seg) {
     char *fail = NULL;
     *fail = 'A';
