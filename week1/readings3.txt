@@ -1,0 +1,29 @@
+The Software Generation Tool Chain
+Compiler
+- Reads sources modules, parses input language. Code usually produced by asembly rahter than machine. Some Ccompilers form virtual machine
+Assembler
+- lower-level. can write routines directly form assemlbly language
+- user mode: modules can have performance iritcla string
+- os: moduls in clude cpu initializaiton
+- locally defined symbols may not be assinged to hard in-momory adresses
+Linkage Editor
+- reads set of object modules and places in virtual address space, notes unresolved external references. 
+- searches libraries to find object moduels that satisfy those refereneces
+- then finds arelocatable/external symobl and updatst to refelct address of deisred code
+- resulting bits of the pgm ready to be loaded into memory and exectued
+Program Loader
+- part of OS, exaing info int he laod module, creates virtual address psace (vas), reads instructiona nd data into that space. 
+
+Object Modules
+- Do not put all oof the code that will be excuted inot a single file 
+  - too cumbersome
+  - making modules availabl for reuse
+- code in object mode is ISA speific
+- ELF (exec and linkable format):
+  - header section describes sections
+  - code and data sections with bytes
+  - symbol tabl
+  - relocatable entreis
+Libraries
+- packaging modules
+- ar(1): creating, updating and examping libaries
