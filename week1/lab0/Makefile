@@ -29,6 +29,14 @@ inandout:
 		echo "Success, input and output" ;\
 	fi
 
+noinandnoout:
+	./lab0 < test.txt > out.txt
+	if [ $$? -eq 0 ] ;\
+	then \
+		echo "no input and no output test" ;\
+	fi
+
+
 badoutput:
 	touch out.txt
 	chmod 444 out.txt 
@@ -49,4 +57,4 @@ clean:
 	rm -f lab0 *.txt *.tar.gz
 
 dist:
-	tar -czvf lab0-204577214.tar.gz ~/cs111/week1/lab0/ Makefile lab0.c backtrace.png breakpoint.png README test.txt
+	tar -czvf lab0-204577214.tar.gz Makefile lab0.c backtrace.png breakpoint.png README

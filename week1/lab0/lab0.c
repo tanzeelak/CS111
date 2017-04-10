@@ -95,6 +95,10 @@ int main(int argc, char* argv[])
 	    dup(ifd);
 	    close(ifd);
 	  }
+	  else {
+	    fprintf(stderr, "failed to open input file", strerror(errno));
+	    exit(2);
+	  }
   }
 
   if (outflag) {
@@ -104,6 +108,9 @@ int main(int argc, char* argv[])
       close(1);
       dup(ofd);
       close(ofd);
+    } else {
+      fprintf(stderr, "failed to create output file", strerror(errno));
+      exit(3);
     }
 
   }
