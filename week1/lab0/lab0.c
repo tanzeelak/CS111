@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 	  break;
 
         default:
-	  fprintf(stderr, "what you should actually do", strerror(errno));
+	  fprintf(stderr, "Unrecognized argument:\n--input=filename ... use the specified file as standard input (making it the new fd0).\n--output=filename ... create the specified file and use it as standard output (making it the new fd1). \n--segfault ... force a segmentation fault\n--catch\n", strerror(errno));
           exit(1);
         }
     }

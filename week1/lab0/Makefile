@@ -6,21 +6,16 @@ CFLAGS = -g
 all:
 	gcc lab0.c -o lab0
 
-check:	check1 check2 badoutput inandout canopen
+check:	all goodinput goodoutput badoutput inandout noinandnoout canopen catchtest
 
-check1:
+goodinput:
 	echo "haha haha" > test.txt
 	./lab0 --input=test.txt > output2.txt
 	([ $$? -eq 0 ] && echo "Success for input") || (echo "Fail";)
 
-check2:
+goodoutput:
 	./lab0 --output=out.txt < test.txt
 	([ $$? -eq 0 ] && echo "Success for output") || (echo "Fail";)
-
-#checkbado:
-#	./lab0 < test.txt > output1.txt
-#	([ $$? -eq 0 ] && echo "Success for bad output") || (echo "Fail";)
-
 
 inandout:
 	./lab0 --input=test.txt --output=output.txt
@@ -37,20 +32,29 @@ noinandnoout:
 	fi
 
 
+
 badoutput:
 	touch out.txt
 	chmod 444 out.txt 
 	./lab0 --output=out.txt < test.txt ;\
-	if [ $$? -ne 0 ] ;\
+	if [ $$? -eq 3 ] ;\
 	then \
 		echo "bad output detected" ;\
 	fi
+	rm -f out.txt
 
 canopen:
 	./lab0 --input=test.txt
-	if [ $$? -eq 0 ] ;\
+	if [ $$? -eq 1 ] ;\
 	then \
 		echo "Success, can open file" ;\
+	fi
+
+catchtest:
+	./lab0 --segfault --catch;\
+	if [ $$? -eq 4 ] ;\
+	then \
+		echo "caught error" ;\
 	fi
 
 clean:
