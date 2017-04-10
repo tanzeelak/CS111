@@ -1,62 +1,45 @@
 # I am a commeynt, and I want to say that the variable CC will be
 # the compiler to use.
 CC=gcc
-# Hey!, I am comment number 2. I want to say that CFLAGS will be the
-# options I'll pass to the compiler.
-#CFLAGS=-c -g -Wall
+CFLAGS = -g -02
 
-default:
-	$(CC) lab0.c -o lab0
+all:
+	gcc lab0.c -o lab0
 
-check: checki
+check: check1 check2 badoutput inandout canopen
 
-checki:
-	./lab0 --input=in.txt > out.txt ; \
-	if [ $$? -ne 0 ]; \
-	then \
-	echo "input test passed" \
-	else \
-	echo "input test failed" \
-	fi
+check1:
+	./lab0 --input=test.txt > output2.txt
+	([ $$? -eq 0 ] && echo "Success for input") || (echo "Fail";)
 
-#checko:
-#	./lab0 --output=out.txt < in.txt \
-	if [ $$? -ne 0 ]; \
-	then \
-	     echo "output test passed" \
-	fi
-
-#checks:
-#	./lab0 --segfault \
-	if [ $$? -eq 4 ]; \
-	then \
-		echo "segfault test passed" \
-	fi
-
-
-#checkc:
-#	./lab0 --catch \
-	if [ $$? -eq 4 ]; \
-	then \
-		echo "catch test passed" \
-	fi
-
-#checkbadi:
-#	./lab0 --input=furry.txt \
-	if [ $$? -ne 2 ]; \
-		echo "input file test failed" \
-	fi
+check2:
+	./lab0 --output=out.txt < test.txt
+	([ $$? -eq 0 ] && echo "Success for output") || (echo "Fail";)
 
 #checkbado:
-#	touch furry.txt \
-	chmod 444 furry.txt \
-	./lab0 --output=furry.txt \
-	if [ $$? -ne 3 ]; \
-		echo "output file unable to be opened" \
+#	./lab0 < test.txt > output1.txt
+#	([ $$? -eq 0 ] && echo "Success for bad output") || (echo "Fail";)
+
+
+inandout:
+	./lab0 --input=test.txt --output=output.txt
+	if [ $$? -ne 0 ] ;\
+	then \
+		echo "Success, input and output" ;\
 	fi
 
+badoutput:
+	touch out.txt
+	chmod 444 out.txt 
+	./lab0 --output=out.txt < test.txt ;\
+	if [ $$? -eq 0 ] ;\
+	then \
+		echo "Success, bad output detected" ;\
+	fi
 
-#clean:
-#	rm *o lab0
-
-#dist: 
+canopen:
+	./lab0 --input=test.txt
+	if [ $$? -ne -1 ] ;\
+	then \
+		echo "Success, can open file" ;\
+	fi
