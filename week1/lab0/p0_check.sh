@@ -182,7 +182,7 @@ function testrc {
 	fi
 }
 
-# see if they detect and report invalid arguments
+ see if they detect and report invalid arguments
 for p in $PGMS
 do
     echo "... $p detects/reports bogus arguments"

@@ -5,9 +5,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
+
 
 void sighandler(int signum) {
-  fprintf(stdout, "Segment fault");
+  fprintf(stderr, "Segment fault: %s", strerror(errno));
   exit(4);
 }
 
@@ -15,9 +17,6 @@ static int verbose_flag;
 
 int main(int argc, char* argv[])
 {
-
-  
-  
   int c, fd0, fd1, filedesc, out;
   int seg = 0;
   while (1)
@@ -32,8 +31,7 @@ int main(int argc, char* argv[])
       /* getopt_long stores the option index here. */
       int option_index = 0;
 
-      c = getopt_long (argc, argv, "i:o:sc:",
-                       long_options, &option_index);
+      c = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index);
 
       /* Detect the end of the options. */
       if (c == -1)
@@ -55,16 +53,20 @@ int main(int argc, char* argv[])
 	  filedesc = open(optarg, O_RDONLY);
 	  if (filedesc != -1)
 	    dup2(filedesc, 0);
-	  else
-	    fprintf(stderr, "failed to open input file");
+	  else {
+	    fprintf(stderr, "failed to open input file", strerror(errno));
+	    exit(2);
+	  }
           break;
 
         case 'o':
 	  out = open(optarg, O_WRONLY | O_TRUNC | O_CREAT);
 	  if (out != -1)
 	    dup2(out, 1);
-	  else
-	    fprintf(stderr, "failed to create output file");
+	  else {
+	    fprintf(stderr, "failed to create output file", strerror(errno));
+	    exit(3);
+	  }
           break;
 
         case 's':
@@ -78,7 +80,8 @@ int main(int argc, char* argv[])
 	  break;
 
         default:
-          abort ();
+	  fprintf(stderr, "what you should actually do", strerror(errno));
+          exit(1);
         }
     }
 
@@ -110,6 +113,8 @@ int main(int argc, char* argv[])
     } 
 
 
+  close(0);
+  close(1);
   exit (0);
   
 
