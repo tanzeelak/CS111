@@ -27,3 +27,84 @@ Object Modules
 Libraries
 - packaging modules
 - ar(1): creating, updating and examping libaries
+
+
+Reading 2: Stack Frames and Linkage
+- The Stack Model of Programming Langauges
+  - most langues support procedure local varraibles: automattically alloatd/within blcok
+    - stroed in stack, does not work all memory allocation needs
+
+- Subroutine Linkage COnversion
+  - Instruction set architeture specific
+  - basic elements: 
+    - parameter passing, subrouite call, register saving, allocatin space
+    - returng value: placing val in stack, popping local storage, reg storing, soubroutine return
+  - X86 register conventisons:
+    - %esp: hardware-defined stack pointer
+    - %ebp: frame pointer
+    - %eas: return value
+- Traps and Interrups: inform software tht event hapend, and execution fault
+  - diff bt procedure call and interrupt/trap
+    - running software calls procedure call, hardware calls interupts and traps
+  - trap mechanism
+    - numb assoc with every possible interrput/exect able. OS has table that apirs Prgoram Counter and Proceessor word status with each of these.
+    - when triggered, CPU uses associated numbers to index appropriate trap. CPU loads a new pgm coutner. pushes pgm and processor status word assoicated with interrputed computation ionto the cpu stack
+    - first level handler: selected code saves all registers, finds cause of trap, choos second level handler
+    - second level handler: deals with interrupt/except. then the first level saves registers, executes rtrn from interrupt. CPU relaods pgm counte. exec resumes at interruption.
+- Stacking and un-stacking of a (system call) trap
+  - restores state of interrupted computaiton more completely.
+  - less expensive
+
+Reading 3: Arpaci C3 (intro to processes)
+- Assume there is one physical CPU in sytem. Virtualiztion takes the single CPU an dmakes it look like many virtual CPUs running on application.
+- Each application thinks it has its own CPU, but htere is actually only one
+
+Reading 4: Aparci C4 (processes)
+- intro: 
+  - process: running program, bunch of instructions wiht some static data
+  - time-sharing of CPU: allows users to run many concurrent processses, withcost of speed/performance
+  - mehchanism: low-level machinery fo rvirtualizaiton
+  - sheduling policy: inttelligent to make dciison fo runnign programs
+- 4.1: The Abstraction: A Processs
+  - machine state: what a pgm can raed/udpate when running
+  - memory: address space is where the process cna access
+  - registers: manyinstructions read o rupdate rg
+    - progrma counter: tellswhci instruction is implemented
+    - stack poiter
+    - frame pointer
+  - I/O: list of files currently open
+- 4.2: Process API
+  - Create: to create new proecsss
+  - Destroy: when pgms don't exit by themselves, users can use this
+  - Wait: waiting for process to stop runnin
+  - Miscellaneous Control: 
+  - Status: info
+- 4.3: Process Creation: A Little More Detail
+  - load code to static data, meory. Pgms lie on disk so OS has to reda biytes form disk and place into emory sowmerwer
+  - run-time stack: memmory allocatd here fo rlocal vars, func param, rets
+  - heap: dynamically-allocatd data
+  - I/O file descriptors: stnadard input, output, and error. 
+  - start pgm at entry point, main()
+- 4.4: Process States
+  - Three states
+    - Running: exec instructions
+    - Ready: process ready but not running
+    - Blocked: some other event must take place b4 processsstops
+  - scheudleprocess can be mvoed adt discretion of OS
+  - processes become blocked when readinf from ids for waitn for a packet from a newtwork.
+- 4.5: Data Structures: 
+  - processe list: to see which ones are ready and blcoked processes
+  - register context: holds reg of stopped proceses, saved to meory lcoations, restore registers
+  - insital state: process in which it si being crated
+  - final state: exited but onot cleaned up, good for examing return code. one final code for ompletiion of child, and ready to clena up.
+
+Reading 5: Arparci C5 (process APIs)
+- 5.1: The fork() System Call
+  - fork() used to create new process
+  - process cretaed is almost an exact copy of the calling process, so apears to have two coppies. this is hte child, which does not start running at main.
+  - child rceives return code of zero
+  - shceudlur: not helpfuli n making assumptions of what it will do, non-detrminism
+  - multi-threaded pgms
+- 5.2: The wait() System Call
+  - useful for parent to wait for child process to finish
+  
