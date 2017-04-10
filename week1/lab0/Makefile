@@ -43,3 +43,9 @@ canopen:
 	then \
 		echo "Success, can open file" ;\
 	fi
+
+clean:
+	rm *o lab0
+
+dist:
+	tar -czvf lab0-204577214.tar.gz ~/cs111/week1/lab0/ Makefile lab0.c backtrace.png breakpoint.png README test.txt
