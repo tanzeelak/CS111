@@ -107,4 +107,68 @@ Reading 5: Arparci C5 (process APIs)
   - multi-threaded pgms
 - 5.2: The wait() System Call
   - useful for parent to wait for child process to finish
+- 5.3: Finally, The exec() System Call
+  - run a pgm different form the calling pgm, or call a dif pgm
+  - give the name of an executable, loads code from exc and covewrites curr code segment. memory of gpm are reinzalitozed. does nto create  newprocess, transforms currently running pgm to a differnet running pgm. 
+  - successful call to exec() never returns
+- 5.4: Why? Motivating the API
+  - Separation fo fork() and exec() essential ,bc shell code can run between the calls to fork() an dexec()
+  - pipping: inputp/output seamlessly lead o each other
+- 5.5: The Other Parts of the API
+  - kill() : send signals to process, like sleep, die
+
+Reading 6: Aparci C6 (process implementation): Mechanism: Limted Direct Execution
+- 6.1: Basic Technique: Limitd Direct Execution
+  - limited direct executiion: urn pgm directonly on the CPU. When OS wishes to start a prgm, creates process entry for lis t, alloc memory, loads pgm into memor from entry point
+- 6.2: Problem #1: Restricted Operations
+  - What fif process wanst ot perfsome restricted oepration?
+ - user mode: code that runs in user mode is restricted, process can't issue I/o requestison
+ - kernal mode: code that runs can do whahat it likes
+ - system call: when user wants to run restricted call
+ - trap instrutions: raises privlege leve to kernal mode
+   - return-from-trap: returns calling user pgm while reducing privelgeg level to user mode
+ - must be careful baout saving caller's registers to return correctlu
+ - trap table: kernal creats such at boot time, controls what code eectues upon trap
+   - OS informs hardware of trap handler locaitns
+ - system-call nubmer: user code ust place correct in a register or stack. ensnures valid, formo fprotection
+ - executing the instruction tot tellt he hardwrae wher therap tables are: priveleged option
+ - LDE protocol: 2 phases
+   - kernal initializes trap table via priv instruc
+   - kernal setsup bfore using returnfromtrap instruc, switches cpu to user mode
+- 6.3: Problem #2: Switching Between Processes
+  - if CPU running, OS is tehcnically not running. OS must regain control of CPU to switch
+  - A Cooperative Approcah: Wait for System Calls
+    - processes transfer control of CPU to OS by making system calls
+    - apps transfer contorl to OS when they do something illegal, ex, , generatina atrap
+  - A Non-Cooperative Approach: The OS Takes Control
+    - OS can't do anything if process refuses to maek systme calls
+    - if process get stuck in infitie loop, only soln is to reboot the machine
+    - timer interrupt: when interrupt raised, the currntly running process is haltd, and interrutp handler in OS runs
+    - At boot time, the OS informs hardwer of which code fo the iemre to run
+  - Saving and Restoring Context
+    - schedular: dcides running and swithcing
+      - OS also runs context switch: saving reg vals
+      - when OS returns fro m return-from-trap instruc, soon-t-boe=exec process ecome currenlty-running proceess
+    - Two types of regsiter saves/restores: 
+      - timer interrup occurs, user reg of running process are implcityly saved by the hardware
+      - OS decdies to switch from A to B, kernal reg are explictly saved by software
+- 6.4: Worried About Concurrency
+  - what if handling interrupt and onother aoccurs?
+  - disable interrupts during interrupt processing
+    - but accidentally disable for too long and lead to lost interrupts
+  - lcoking schemes to protect concurrent access ot internal data structures
+- 6.5; cpu virtualization used by limited direct execution. make sure to have limit setup by hardware
+
+Reading 7: signal(2)
+- Synopsis
+  #include <signal.h>
+  typdef void (*signhandler_t)(int);
+  isnhandler-t singal(int signum, isghandler_t handler)
+- Description: setsdisposition of sihnalder
+  - SIG_IGN: signal ignored
+  - SIG_FL: default action assoc with signal ocucurs
+  - SIGKILL and SIGSTOP cannot be ignored
+- Return val: rturn sprev val of the sig handler or SIG_ERR
+  - if error, errno indiicates such
+  
   
