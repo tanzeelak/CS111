@@ -11,26 +11,51 @@ check:	all goodinput goodoutput badoutput inandout noinandnoout canopen catchtes
 goodinput:
 	echo "haha haha" > test.txt
 	./lab0 --input=test.txt > output2.txt
-	([ $$? -eq 0 ] && echo "Success for input") || (echo "Fail";)
+	if [ $$ -eq 0 ] ;\
+	then \
+		echo "Passed: Proper input.\n" ;\
+	else \
+		echo "Failed: Proper input.\n" ;\
+	fi
+	rm output2.txt
 
 goodoutput:
 	./lab0 --output=out.txt < test.txt
-	([ $$? -eq 0 ] && echo "Success for output") || (echo "Fail";)
-
-inandout:
-	./lab0 --input=test.txt --output=output.txt
 	if [ $$? -eq 0 ] ;\
 	then \
-		echo "Success, input and output" ;\
+		echo "Passed: Proper output.\n" ;\
+	else \
+		echo "Failed: Proper output.\n" ;\
 	fi
+	rm out.txt
+
+inandout:
+	./lab0 --input=test.txt --output=out.txt
+	if [ $$? -eq 0 ] ;\
+	then \
+		echo "Passed: Proper input and output.\n" ;\
+	else \
+		echo "Failed: Proper input and output.\n" ;\
+	fi ;\
+	diff test.txt out.txt > changes.txt ;\
+	if [ -s changes.txt ] ;\
+	then \
+		echo "Passed: Input and output are the same.\n" ;\
+	else \
+		echo "Failed: Input and output are different.\n" ;\
+	fi
+	rm changes.txt out.txt
+
 
 noinandnoout:
 	./lab0 < test.txt > out.txt
 	if [ $$? -eq 0 ] ;\
 	then \
-		echo "no input and no output test" ;\
+		echo "Passed: no input and no output test.\n" ;\
+	else \
+		echo "Failed: no input and no output test.\n" ;\
 	fi
-
+	rm out.txt
 
 
 badoutput:
@@ -39,7 +64,9 @@ badoutput:
 	./lab0 --output=out.txt < test.txt ;\
 	if [ $$? -eq 3 ] ;\
 	then \
-		echo "bad output detected" ;\
+		echo "Passed: Bad output detected.\n" ;\
+	else \
+		echo "Failed: Bad output detected.\n" ;\
 	fi
 	rm -f out.txt
 
@@ -47,7 +74,9 @@ canopen:
 	./lab0 --input=test.txt ;\
 	if [ $$? -eq 1 ] ;\
 	then \
-		echo "Success, can open file" ;\
+		echo "Passed: Can open file.\n" ;\
+	else \
+		echo "Failed: Can open file.\n" ;\
 	fi
 
 badinput:
@@ -56,14 +85,19 @@ badinput:
 	./lab0 --input=in.txt ;\
 	if [ $$? -eq 2 ] ;\
 	then \
-		echo "Detected unopenable file" ;\
+		echo "Passed: Detected unopenable file.\n" ;\
+	else \
+		echo "Failed: Detected unopenable file.\n" ;\
 	fi
+	rm -f in.txt test.txt
 
 catchtest:
 	./lab0 --segfault --catch;\
 	if [ $$? -eq 4 ] ;\
 	then \
-		echo "caught error" ;\
+		echo "Passed: Caught segfault.\n" ;\
+	else \
+		echo "Failed: Caught segfault.\n" ;\
 	fi
 
 clean:

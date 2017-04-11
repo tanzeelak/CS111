@@ -9,7 +9,7 @@
 
 
 void sighandler(int signum) {
-  fprintf(stderr, "Segment fault: %s", strerror(errno));
+  fprintf(stderr, "Detected segment fault: %s\n", strerror(errno));
   exit(4);
 }
 
@@ -43,16 +43,6 @@ int main(int argc, char* argv[])
 
       switch (c)
         {
-        case 0:
-          /* If this option set a flag, do nothing else now. */
-          if (long_options[option_index].flag != 0)
-            break;
-          printf ("option %s", long_options[option_index].name);
-          if (optarg)
-            printf (" with arg %s", optarg);
-          printf ("\n");
-          break;
-
         case 'i':
 	  inflag = 1;
 	  inopt = optarg;
@@ -64,8 +54,6 @@ int main(int argc, char* argv[])
           break;
 
         case 's':
-          //char* h;
-	  //h = NULL;
 	  seg = 1;
           break;
 
@@ -79,14 +67,6 @@ int main(int argc, char* argv[])
         }
     }
 
-  /* Instead of --
-     -- as they are encountered,
-     we report the final status resulting from them. */
-  if (verbose_flag)
-    puts ("verbose flag is set");
-
-  /* Print any remaining command line arguments (not options). */
-    
   if (inflag) {
 
 	  int ifd = open(inopt, O_RDONLY);
@@ -96,7 +76,7 @@ int main(int argc, char* argv[])
 	    close(ifd);
 	  }
 	  else {
-	    fprintf(stderr, "failed to open input file", strerror(errno));
+	    fprintf(stderr, "Failed to open input file.\n", strerror(errno));
 	    exit(2);
 	  }
   }
@@ -109,7 +89,7 @@ int main(int argc, char* argv[])
       dup(ofd);
       close(ofd);
     } else {
-      fprintf(stderr, "failed to create output file", strerror(errno));
+      fprintf(stderr, "Failed to create output file.\n", strerror(errno));
       exit(3);
     }
 
