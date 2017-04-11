@@ -67,12 +67,6 @@ int main(int argc, char* argv[])
         }
     }
 
-  if (seg) {
-    char *fail = NULL;
-    *fail = 'A';
-  }
-
-
   if (inflag) {
 
 	  int ifd = open(inopt, O_RDONLY);
@@ -101,8 +95,16 @@ int main(int argc, char* argv[])
 
   }
 
+  if (seg) {
+    char *fail = NULL;
+    *fail = 'A';
+  }
+
   char buff;
   while(read(0, &buff, 1))
+
+
+
     {
       write(1, &buff, 1);
     } 

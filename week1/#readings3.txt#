@@ -135,7 +135,6 @@ Reading 6: Aparci C6 (process implementation): Mechanism: Limted Direct Executio
  - LDE protocol: 2 phases
    - kernal initializes trap table via priv instruc
    - kernal setsup bfore using returnfromtrap instruc, switches cpu to user mode
-   - To execute a system call, a program must execute a special trap instruction.
 - 6.3: Problem #2: Switching Between Processes
   - if CPU running, OS is tehcnically not running. OS must regain control of CPU to switch
   - A Cooperative Approcah: Wait for System Calls

@@ -1,5 +1,3 @@
-# I am a commeynt, and I want to say that the variable CC will be
-# the compiler to use.
 CC=gcc
 CFLAGS = -g
 
@@ -13,9 +11,9 @@ goodinput:
 	@./lab0 --input=test.txt > output2.txt
 	@if [ $$? -eq 0 ] ;\
 	then \
-		echo "Passed: Proper input.\n" ;\
+		echo "Passed: Proper input test." ;\
 	else \
-		echo "Failed: Proper input.\n" ;\
+		echo "Failed: Proper input test." ;\
 	fi
 	@rm output2.txt
 
@@ -23,9 +21,9 @@ goodoutput:
 	@./lab0 --output=out.txt < test.txt
 	@if [ $$? -eq 0 ] ;\
 	then \
-		echo "Passed: Proper output.\n" ;\
+		echo "Passed: Proper output test." ;\
 	else \
-		echo "Failed: Proper output.\n" ;\
+		echo "Failed: Proper output test." ;\
 	fi
 	@rm out.txt
 
@@ -33,9 +31,9 @@ inandout:
 	@./lab0 --input=test.txt --output=out.txt
 	@if [ $$? -eq 0 ] ;\
 	then \
-		echo "Passed: Proper input and output.\n" ;\
+		echo "Passed: Proper input and output test." ;\
 	else \
-		echo "Failed: Proper input and output.\n" ;\
+		echo "Failed: Proper input and output test." ;\
 	fi ;\
 	diff test.txt out.txt > changes.txt ;\
 	if [ -s changes.txt ] ;\
@@ -51,9 +49,9 @@ noinandnoout:
 	@./lab0 < test.txt > out.txt
 	@if [ $$? -eq 0 ] ;\
 	then \
-		echo "Passed: no input and no output test.\n" ;\
+		echo "Passed: no input and no output test." ;\
 	else \
-		echo "Failed: no input and no output test.\n" ;\
+		echo "Failed: no input and no output test." ;\
 	fi
 	@rm out.txt
 
@@ -64,9 +62,9 @@ badoutput:
 	@./lab0 --output=out.txt < test.txt ;\
 	if [ $$? -eq 3 ] ;\
 	then \
-		echo "Passed: Bad output detected.\n" ;\
+		echo "Passed: Bad output detected test." ;\
 	else \
-		echo "Failed: Bad output detected.\n" ;\
+		echo "Failed: Bad output detected test." ;\
 	fi
 	@rm -f out.txt
 
@@ -74,9 +72,9 @@ canopen:
 	@./lab0 --input=test.txt ;\
 	if [ $$? -eq 0 ] ;\
 	then \
-		echo "Passed: Can open file.\n" ;\
+		echo "Passed: Can open file test." ;\
 	else \
-		echo "Failed: Can open file.\n" ;\
+		echo "Failed: Can open file test." ;\
 	fi
 
 badinput:
@@ -85,9 +83,9 @@ badinput:
 	@./lab0 --input=in.txt ;\
 	if [ $$? -eq 2 ] ;\
 	then \
-		echo "Passed: Detected unopenable file.\n" ;\
+		echo "Passed: Detected unopenable file test." ;\
 	else \
-		echo "Failed: Detected unopenable file.\n" ;\
+		echo "Failed: Detected unopenable file test." ;\
 	fi
 	@rm -f in.txt test.txt
 
@@ -95,9 +93,9 @@ catchtest:
 	@./lab0 --segfault --catch;\
 	if [ $$? -eq 4 ] ;\
 	then \
-		echo "Passed: Caught segfault.\n" ;\
+		echo "Passed: Caught segfault test." ;\
 	else \
-		echo "Failed: Caught segfault.\n" ;\
+		echo "Failed: Caught segfault test." ;\
 	fi
 
 clean:

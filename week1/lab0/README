@@ -4,19 +4,19 @@ ID: 204577214
 
 lab0.c:
 	This file copies standard input to standard output by using read and write with the file descriptors. getopt_long is the API used to parse the designated options. The options are as follows, --input, --output, --segfualt, --catch. 
+	The main function includes a while loop that runs get_opt_long with argc and argv as its input argumetns. The switch statement turns on flags for each of the options. It also catches optarg for each of the cases. Following the switch statement, I have if statements for each flag. I used the given code to handle the files for options, input and output. My segment flag siad a NULL pointer to a character, creating the segment fault.
 
 Makefile:
-	I checked for a good input file, good output file, and input and output case, no in and no output case ,bunwritable file cas,e and cannot open case. 
+	Within my makefile, I created test cases in bash script. These cases were for good input file, good output file, good in and out file, piped in and out file, bad output file, openable file, bad input file, and catch test. These include all 0-4 file descriptors. 
 
-backtrace.png:
+backtrace.png: I run the program with --segfault after compiling the lab0.c file with -g command. I breakpoint to the line that has the segfault. When I run and reveal the line with bt full, I see the stack backtrace.
 
-breakpoint.png:
+breakpoint.png: I run the program with --segfault after compiling the lab0.c file with the -g command. I breakpoint to the line and see that the char* variable, *fail = 0x0. 
 
 Sources:
-	https://www.tutorialspoint.com/c_standard_library/c_function_signal.htm
-	http://codewiki.wikidot.com/c:system-calls:write
-	http://www.cs.loyola.edu/~jglenn/702/S2005/Examples/dup2.html
-	http://codewiki.wikidot.com/c:system-calls:open
-	https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Options.html
-	https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
-	http://stackoverflow.com/questions/18496282/why-do-i-get-a-label-can-only-be-part-of-a-statement-and-a-declaration-is-not-a
+	"C library function - signal()", TutorialsPoint, https://www.tutorialspoint.com/c_standard_library/c_function_signal.htm
+	"write (C System Call)", Code Wiki, http://codewiki.wikidot.com/c:system-calls:write
+	"open (C System Call)", Code Wiki, http://codewiki.wikidot.com/c:system-calls:open
+	"Parsing Long Options with getopt_long", gnu.org, https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Options.html
+	"Example of Parsing Long Options with getopt_long", gnu.org, https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
+	"Multiline bash commands in makefile", stackoverflow.com, http://stackoverflow.com/questions/10121182/multiline-bash-commands-in-makefile
