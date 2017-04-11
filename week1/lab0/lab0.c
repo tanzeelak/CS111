@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 	    close(ifd);
 	  }
 	  else {
-	    fprintf(stderr, "Failed to open input file.\n", strerror(errno));
+	    fprintf(stderr, "Failed to open input file. %s\n", strerror(errno));
 	    exit(2);
 	  }
   }
@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
       dup(ofd);
       close(ofd);
     } else {
-      fprintf(stderr, "Failed to create output file.\n", strerror(errno));
+      fprintf(stderr, "Failed to create output file. %s\n", strerror(errno));
       exit(3);
     }
 

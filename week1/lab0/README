@@ -11,3 +11,12 @@ Makefile:
 backtrace.png:
 
 breakpoint.png:
+
+Sources:
+	https://www.tutorialspoint.com/c_standard_library/c_function_signal.htm
+	http://codewiki.wikidot.com/c:system-calls:write
+	http://www.cs.loyola.edu/~jglenn/702/S2005/Examples/dup2.html
+	http://codewiki.wikidot.com/c:system-calls:open
+	https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Options.html
+	https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
+	http://stackoverflow.com/questions/18496282/why-do-i-get-a-label-can-only-be-part-of-a-statement-and-a-declaration-is-not-a
