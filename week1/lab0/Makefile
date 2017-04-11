@@ -6,7 +6,7 @@ CFLAGS = -g
 all:
 	gcc -g lab0.c -o lab0
 
-check:	all goodinput goodoutput badoutput inandout noinandnoout canopen catchtest
+check:	all goodinput goodoutput badoutput inandout noinandnoout canopen catchtest badinput
 
 goodinput:
 	echo "haha haha" > test.txt
@@ -44,10 +44,19 @@ badoutput:
 	rm -f out.txt
 
 canopen:
-	./lab0 --input=test.txt
+	./lab0 --input=test.txt ;\
 	if [ $$? -eq 1 ] ;\
 	then \
 		echo "Success, can open file" ;\
+	fi
+
+badinput:
+	touch in.txt
+	chmod 000 in.txt
+	./lab0 --input=in.txt ;\
+	if [ $$? -eq 2 ] ;\
+	then \
+		echo "Detected unopenable file" ;\
 	fi
 
 catchtest:
