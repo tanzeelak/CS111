@@ -7,35 +7,27 @@
 
 struct termios initState;
 
-int
-set_istrip (int desc, struct termios state)
+int main()
 {
   int result;
 
-  result = tcgetattr (desc, &state);
+  result = tcgetattr (1, &initState);
   if (result < 0)
     {
       perror ("error in tcgetattr");
-      return 0;
     }
-  state.c_iflag = ISTRIP;
-  state.c_oflag = 0;
-  state.c_lflag = 0;
-
-  result = tcsetattr (desc, TCSANOW, &state);
-  if (result < 0)
-    {
-      perror ("error in tcsetattr");
-      return 0;
-    }
-  return 1;
-}
-
-
-
-int main()
-{
-  set_istrip(0, initState);
+  
+  struct termios newState;
+  newState.c_iflag = ISTRIP;
+  newState.c_oflag = 0;
+  newState.c_lflag = 0;
+  
+ 
+  //result = tcsetattr (desc, TCSANOW, &initState);
+  // if (result < 0)
+  //{
+  //  perror ("error in tcsetattr");
+  //}
 
 
 }
