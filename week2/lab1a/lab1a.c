@@ -5,58 +5,59 @@
 #include <fcntl.h>
 #include <string.h>
 #include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-struct termios initState;
-struct pollfd fds[1];
-int timeout_msecs = 500;
-int ret;
-int i;
+/* Use this variable to remember original terminal attributes. */
 
+struct termios saved_attributes;
 
-int main(int argc, char* argv[])
+void
+reset_input_mode (void)
 {
-  int result;
-  fds[0].fd = open(optarg, O_RDONLY);
-  fds[0].events = POLLOUT | POLLWRBAND;
+  tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes);
+}
 
-  result = tcgetattr (1, &initState);
-  if (result < 0)
+void
+set_input_mode (void)
+{
+  struct termios tattr;
+  char *name;
+
+  /* Make sure stdin is a terminal. */
+  if (!isatty (STDIN_FILENO))
     {
-      perror ("error in tcgetattr");
+      fprintf (stderr, "Not a terminal.\n");
+      exit (EXIT_FAILURE);
     }
-  
-  struct termios newState;
-  newState.c_iflag = ISTRIP;
-  newState.c_oflag = 0;
-  newState.c_lflag = 0;
-  
-  ret = poll(fds, 1, timeout_msecs);
-  char buff;
-  if (ret > 0) {
-    /* An event on one of the fds has occurred. */
-    for (i=0; i<2; i++) {
-      if (fds[i].revents & POLLWRBAND) {
-        /* Priority data may be written on device number i. */
-	while(read(0, &buff, 1))
-	  {
-	    write(1, &buff, 1);
-	  }
-      }
-      if (fds[i].revents & POLLOUT) {
-        /* Data may be written on device number i. */
-      }
-      if (fds[i].revents & POLLHUP) {
-        /* A hangup has occurred on device number i. */
-      }
+
+  /* Save the terminal attributes so we can restore them later. */
+  tcgetattr (STDIN_FILENO, &saved_attributes);
+  atexit (reset_input_mode);
+
+  /* Set the funny terminal modes. */
+  tcgetattr (STDIN_FILENO, &tattr);
+  tattr.c_lflag &= ~(ICANON|ECHO); /* Clear ICANON and ECHO. */
+  tattr.c_cc[VMIN] = 1;
+  tattr.c_cc[VTIME] = 0;
+  tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
+}
+
+int
+main (void)
+{
+  char c;
+
+  set_input_mode ();
+
+  while (1)
+    {
+      read (STDIN_FILENO, &c, 1);
+      if (c == '\004')          /* C-d */
+        break;
+      else
+        putchar (c);
     }
-  }
 
- 
-  //result = tcsetattr (desc, TCSANOW, &initState);
-  // if (result < 0)
-  //{
-  //  perror ("error in tcsetattr");
-  //}
-
-
+  return EXIT_SUCCESS;
 }
