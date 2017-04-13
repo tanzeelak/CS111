@@ -1,0 +1,101 @@
+Reading 1: Aparci C7 (scheduling)
+- 7.1: Workload Assumptions
+  - workload: processes running the system
+  - fully-operational scheduling discipline
+  - assumpotions about jobs
+    - each job for same amoutn of time, arriv on time, run tocompletion
+    - only use CPU, runtim fo job is known
+- 7.2: Scheduling Metrics
+  - scheduling metric: ued to measure
+  - turnaraound time: time when job completes minus the teime at wthic hte job arrived int eh system. T_turnaround = T_completion - T_arrival
+  - since assuming All arive at tsme time, T_turnaround = T_competion
+  - fairness is a mtric
+- 7.3: First In, First Out (FIFO)
+  - Turnaround calc for A(10), B(20), C(30): (10 + 20 + 30)/3
+  - What if A takes forver: convoy effect
+    - ex: (100+110+120)/3
+- 7.4: Shortest Job First
+  - (10+20+120)/3
+  - optimal schedulign
+  - what if jobs don't arrive within a hair's time. Late arrivals again
+- 7.5: Shortest Time-to-Completion First (STCF)
+  - Relax that jobs must run to completion. Preemtp them isntaed.
+  - STCF: anytime job enters, dterins which of the remaining jobs has the least itme left, and schedules that one
+
+- 7.6: A New Metric: Response Time
+  - response time: time from when the job arrives in asystem tot he first time it is scheduled: T_response = T_firstrun - T_arrival
+- 7.7: Round Robin
+  - RR runs job for a time slice and then switche sto the ent jobs in theq ues. Time slice must be a utlipel fo the timer-interrupt period
+  - amortize: deciding the lenght of time slice, cost os f swithcing so  not unresponsive
+  - Switching between jobs is also aperformacne cost
+  - worst of the policeis
+  - trade off: be unfair and run shorter jobs to completion, fairness, respons time lowered
+- 7.8: Incorporating I/O
+  - If I/O sent to hard disk dirve process might be blockfed for smoe time
+  - What if A is borken itno subjobs? Treat mini jujobs asindpenedent jobs. Allows for overlap, CPU used by one process while awaitn fo rht eI/O ofa nother to complete
+- 7.9: No More Oracle
+  - OS usually knows little about the job
+
+Reading 2: Aparci C8 (adaptive scheduling)
+- Multi-level Feedback Queue: treis to optimize turnaournd time, amke sys feel responsive to interative users
+- 8.1: MLFQ: Basic Rules
+  - uses priroites to dcided whtih cjob should run at agiven time
+    - Rule 1: If priority(a) > priority(b), a runs (b doens't)
+    - Rule 2: If priority(a) = priority(b), a & b run in RR
+  - MLFQ varies priroity based on observed behavior
+    - if job repepatedly relinquishes CPU and waits, high priority		- if job uses cpu for long periods fo time, low pririoty
+  - job pririoty changes over time
+- 8.2: Attempt #1: How to Change Priority
+  - Priority-adjustment algorithm
+    - Rule 3: when job enters sys, placed in highest priority
+    - Rule 4a: if job uese entier time slice while running, priity rduced
+    - Rule 4b: if job gives upt he CPU befor ehte time slice is up,s tays at the same priority evel
+  - Ex 1: A Single Long-Running Job
+    - long running job enters syswtem as highest priroiyt. after time plice, reduces jbo priroity b1. when run agian, job is lowered tolowest priiroity in system
+  - Ex 2: Along Came a Short Job
+    - algorithsm assumes new job is a short job -> high priroirty
+    - if short, will run quikcly and compelte
+    - otherwise,w ill slowly move down the queues
+  - Ex 3: What about I/O
+    - if job is doing a lot of I/O, will relinguqish the CPU before itme slice copmlete
+  - Problems With Our Current MLFQ
+    - sharing cpu betwen long-running jobs, letting sohrt or I/O-intesive jobs run quickly
+    - starvation: too amny interacitve jobs will consume all CPU time and long-running jobs never receive CPU time (starve)
+    - game the scheduler: trick scheduler to givnig more than fair share o the recource. before time slice ends, issue I/) operation and reliqngus CPU, allos to remain in queue, job canmonopolize the CPU
+- 8.3: Attempt #2: The Priority Boost
+  - Perioidically boost eh prioirty of jobs in systme
+    - Rule 5: After some tme period S, move all the jobs in the system to the topmost queue
+  - Ex: consider a long-running job, priority boost every 50 ms
+  - what should S be set to?
+- 8.4: Attempt #3: Better Accounting
+  - Perform accounting of CPU time at each e level. Schedular shocud keep track of how much a time slice a process uese, for deoation
+  - Rewriting Rule
+    - Rule $: One jbo uses up tis tme alotmetn at given lel, priority reduceds
+- 8.5: Tuning MLFQ and Other Issues
+  - parameterize scheudler: how many queues
+  - high-priroity queus given short time slices, usually have interactive jobs
+  - CPU-bound low-piriroty queues, long slices
+  - some systems reserves highest priorty levesls for operating sys work
+
+Reading 3: Real-Time Scheduling
+- Introduction
+  - priroit8y scheudlin: best effort appraoch
+- What are Real-Time Systems
+  - turnaround time:
+    - timeliness
+    - preidcatbility
+  - feasibility: can meet requirements?
+  - hard real time: strong requirements for specif tasskt o be run at intervals
+  - soft real time: wnat to give good response time, but missing deadlines has recoverable failrus
+  - Charateristics that mek sheudling easier
+    - Starvation of low-priiorty atsks
+    - achive high utilizaiton and good response time
+- Real-Time Scheudling Algorithms
+  - Simplest real-tmie systes might not even have shceudlure
+  - compelx sysetems: static scheudling amybe,based on exepcted ccompletion tiem for each componetn
+- Preemption: breaking up execution of long-running compute-intsive tasks
+  - embedded an dreal-time systems run fewerean dsimpler tasks, so infite loops are rare
+- Real-Time and Linux
+  - Increasiingly many embedded and real-time apps have moved to linux
+  - linux uses sched_setscheudler(2)
+  - Windws favores general purpores throughput over meeitn deadlines
