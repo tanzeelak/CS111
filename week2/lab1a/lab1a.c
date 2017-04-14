@@ -55,8 +55,15 @@ main (void)
       read (STDIN_FILENO, &c, 1);
       if (c == '\004')          /* C-d */
         break;
+      else if (c == '\n' || c == '\r')
+      {
+        char temp[2] = {'\r', '\n'};
+        write(1, &temp, 2);
+	//putchar(&temp);
+      }     
       else
-        putchar (c);
+	write(1, &c, 1);
+      //putchar (c);
     }
 
   return EXIT_SUCCESS;
