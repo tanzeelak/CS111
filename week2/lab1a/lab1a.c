@@ -1,4 +1,5 @@
 #include <termios.h>
+#include <getopt.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -45,34 +46,62 @@ set_input_mode (void)
 }
 
 int
-main (void)
+main (int argc, char* argv[])
 {
   char c;
 
   set_input_mode ();
-  int rfd;
+  int rfd = 0;
+  int optParse = 0;
+  int shellFlag = 0;
   while (1)
     {
-      rfd = read (STDIN_FILENO, &c, 1);
-      if (rfd >= 0) {
-	if (c == '\004')          /* C-d */
-	  {  
-	    reset_input_mode();
-	    break;
-	  }
-	else if (c == '\n' || c == '\r')
-	  {
-	    char temp[2] = {'\r', '\n'};
-	    write(1, &temp, 2);
-	    //putchar(&temp);
-	  }     
-	else
-	  write(1, &c, 1);
-	//putchar (c);
+      static struct option long_options[] = {
+        {"shell", required_argument, 0, 's'},
+        {0,0,0,0}
+      };
+
+      int option_index = 0;
+      optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index);
+      switch (optParse)
+	{
+	case 's':
+	  shellFlag = 1;
+	default:
+	  break;
+	}
+
+
+      if (shellFlag) {
+	
+
+	
       }
       else {
-	fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
-	exit(2);
+
+
+	rfd = read (STDIN_FILENO, &c, 1);
+	if (rfd >= 0) {
+	  if (c == '\004')          /* C-d */
+	    {  
+	      reset_input_mode();
+	      break;
+	    }
+	  else if (c == '\n' || c == '\r')
+	    {
+	      char temp[2] = {'\r', '\n'};
+	      write(1, &temp, 2);
+	      //putchar(&temp);
+	    }     
+	  else
+	    write(1, &c, 1);
+	  //putchar (c);
+	}
+	else {
+	  fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
+	  exit(2);
+	}
+
       }
     }
 
