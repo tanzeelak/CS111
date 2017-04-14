@@ -39,7 +39,9 @@ set_input_mode (void)
 
   /* Set the funny terminal modes. */
   tcgetattr (STDIN_FILENO, &tattr);
-  tattr.c_lflag &= ~(ICANON|ECHO); /* Clear ICANON and ECHO. */
+  tattr.c_iflag = ISTRIP; /* Clear ICANON and ECHO. */
+  tattr.c_oflag = 0;
+  tattr.c_lflag = 0;
   tattr.c_cc[VMIN] = 1;
   tattr.c_cc[VTIME] = 0;
   tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
@@ -77,7 +79,7 @@ main (int argc, char* argv[])
 
 	
       }
-      else {
+
 
 
 	rfd = read (STDIN_FILENO, &c, 1);
@@ -102,7 +104,7 @@ main (int argc, char* argv[])
 	  exit(2);
 	}
 
-      }
+
     }
 
   return EXIT_SUCCESS;
