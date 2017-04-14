@@ -115,25 +115,17 @@ main (int argc, char* argv[])
 	    dup(pipe2[1]);
 	    close(pipe1[0]);
 	    close(pipe2[1]);
-	    
-	    
-	    //read_from_pipe(pipe1[0]);
 	    execvp("/bin/bash", NULL);
-
-
-
-
-
 	    return(2);
 	  }
 	else if (pid < 0)
 	  {
 	    fprintf(stderr, "Failed to fork. %s\n", strerror(errno));
-	    exit(2);
+	      exit(2);
 	  }
 	else 
 	  {
-
+	    /*
 	    close(pipe1[0]);
 	    close(pipe2[1]);
 	    close(1);
@@ -142,11 +134,11 @@ main (int argc, char* argv[])
 	    dup(pipe2[0]);
 	    close(pipe1[1]);
 	    close(pipe2[0]);
-
+	    
 	    char buff;
 	    int rfd = read (STDIN_FILENO, &c, 1);
 	    if (rfd >= 0) {
-	      if (c == '\004')          /* C-d */
+	      if (c == '\004')
 		{
 		  reset_input_mode();
 		  break;
@@ -167,15 +159,15 @@ main (int argc, char* argv[])
 	      fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
 	      exit(1);
 	    }
-
-	    return(2);
+	    
+	    return(2); */
 	  }
 
 	
       }
 
 
-      else {
+
 	rfd = read (STDIN_FILENO, &c, 1);
 	if (rfd >= 0) {
 	  if (c == '\004')          /* C-d */
@@ -197,7 +189,7 @@ main (int argc, char* argv[])
 	  fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
 	  exit(1);
 	}
-      }
+
 
     }
 
