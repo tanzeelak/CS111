@@ -82,13 +82,13 @@ main (int argc, char* argv[])
   int rfd = 0;
   int optParse = 0;
   int shellFlag = 0;
-  int mypipe[2];
+  int pipe1[2], pipe2[2];
 
 
   while (1)
     {
       static struct option long_options[] = {
-        {"shell", required_argument, 0, 's'},
+        {"shell", no_argument, 0, 's'},
         {0,0,0,0}
       };
 
@@ -107,8 +107,18 @@ main (int argc, char* argv[])
 	pid = fork();
 	if (pid == 0)
 	  {
-	    close(mypipe[1]);
-	    read_from_pipe(mypipe[0]);
+	    close(pipe1[1]);
+	    close(pipe2[0]);
+	    close(0);
+	    close(1);
+	    dup(pipe1[0]);
+	    dup(pipe2[1]);
+	    close(pipe1[0]);
+	    close(pipe2[1]);
+	    
+	    
+	    //read_from_pipe(pipe1[0]);
+	    execvp("/bin/bash", NULL);
 	    return(2);
 	  }
 	else if (pid < 0)
@@ -118,8 +128,8 @@ main (int argc, char* argv[])
 	  }
 	else 
 	  {
-	    close(mypipe[0]);
-	    write_to_pipe(mypipe[1]);
+	    close(pipe1[0]);
+	    write_to_pipe(pipe1[1]);
 	    return(2);
 	  }
 
