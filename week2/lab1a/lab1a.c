@@ -165,7 +165,7 @@ main (int argc, char* argv[])
 	    }
 	    else {
 	      fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
-	      exit(2);
+	      exit(1);
 	    }
 
 	    return(2);
@@ -195,11 +195,11 @@ main (int argc, char* argv[])
 	}
 	else {
 	  fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
-	  exit(2);
+	  exit(1);
 	}
       }
 
     }
 
-  return EXIT_SUCCESS;
+  exit(1);
 }
