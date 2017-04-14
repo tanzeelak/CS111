@@ -119,6 +119,11 @@ main (int argc, char* argv[])
 	    
 	    //read_from_pipe(pipe1[0]);
 	    execvp("/bin/bash", NULL);
+
+
+
+
+
 	    return(2);
 	  }
 	else if (pid < 0)
@@ -128,8 +133,41 @@ main (int argc, char* argv[])
 	  }
 	else 
 	  {
+
 	    close(pipe1[0]);
-	    write_to_pipe(pipe1[1]);
+	    close(pipe2[1]);
+	    close(1);
+	    close(0);
+	    dup(pipe1[1]);
+	    dup(pipe2[0]);
+	    close(pipe1[1]);
+	    close(pipe2[0]);
+
+	    char buff;
+	    int rfd = read (STDIN_FILENO, &c, 1);
+	    if (rfd >= 0) {
+	      if (c == '\004')          /* C-d */
+		{
+		  reset_input_mode();
+		  break;
+		}
+	      else if (c == '\n' || c == '\r')
+		{
+		  char temp[2] = {'\r', '\n'};
+		  write(1, &temp, 2);
+		  write(pipe1[0], &buff, 1);
+		}
+	      else
+		{
+		  write(1, &c, 1);
+		  write(pipe1[0], &buff, 1);
+		}
+	    }
+	    else {
+	      fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
+	      exit(2);
+	    }
+
 	    return(2);
 	  }
 
