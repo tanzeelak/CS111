@@ -13,6 +13,7 @@
 /* Use this variable to remember original terminal attributes. */
 
 struct termios saved_attributes;
+pid_t pid;
 
 void
 reset_input_mode (void)
@@ -47,6 +48,31 @@ set_input_mode (void)
   tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
 }
 
+void
+read_from_pipe (int file)
+{
+  FILE *stream;
+  int c;
+  stream = fdopen (file, "r");
+  while ((c = fgetc (stream)) != EOF)
+    putchar (c);
+  fclose (stream);
+}
+
+/* Write some random text to the pipe. */
+
+void
+write_to_pipe (int file)
+{
+  FILE *stream;
+  stream = fdopen (file, "w");
+  fprintf (stream, "hello, world!\n");
+  fprintf (stream, "goodbye, world!\n");
+  fclose (stream);
+}
+
+
+
 int
 main (int argc, char* argv[])
 {
@@ -56,6 +82,9 @@ main (int argc, char* argv[])
   int rfd = 0;
   int optParse = 0;
   int shellFlag = 0;
+  int mypipe[2];
+
+
   while (1)
     {
       static struct option long_options[] = {
@@ -75,13 +104,30 @@ main (int argc, char* argv[])
 
 
       if (shellFlag) {
-	
+	pid = fork();
+	if (pid == 0)
+	  {
+	    close(mypipe[1]);
+	    read_from_pipe(mypipe[0]);
+	    return(2);
+	  }
+	else if (pid < 0)
+	  {
+	    fprintf(stderr, "Failed to fork. %s\n", strerror(errno));
+	    exit(2);
+	  }
+	else 
+	  {
+	    close(mypipe[0]);
+	    write_to_pipe(mypipe[1]);
+	    return(2);
+	  }
 
 	
       }
 
 
-
+      else {
 	rfd = read (STDIN_FILENO, &c, 1);
 	if (rfd >= 0) {
 	  if (c == '\004')          /* C-d */
@@ -103,7 +149,7 @@ main (int argc, char* argv[])
 	  fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
 	  exit(2);
 	}
-
+      }
 
     }
 
