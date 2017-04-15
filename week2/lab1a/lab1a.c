@@ -120,7 +120,7 @@ main (int argc, char* argv[])
 	    fprintf(stderr, "pipe() failed! \n");
 	    exit(1);
 	  }
-
+	
 	pid = fork();
 	if (pid > 0)
 	  {
@@ -145,13 +145,8 @@ main (int argc, char* argv[])
 	  fprintf(stderr, "fork() failed!\n");
 	  exit(1);
 	}
-
-
 	
-      }
-
-
-
+	
 	rfd = read (STDIN_FILENO, &c, 1);
 	if (rfd >= 0) {
 	  if (c == '\004')          /* C-d */
@@ -174,6 +169,32 @@ main (int argc, char* argv[])
 	  exit(1);
 	}
 
+      }
+
+
+      else {
+	rfd = read (STDIN_FILENO, &c, 1);
+	if (rfd >= 0) {
+	  if (c == '\004')          /* C-d */
+	    {  
+	      reset_input_mode();
+	      break;
+	    }
+	  else if (c == '\n' || c == '\r')
+	    {
+	      char temp[2] = {'\r', '\n'};
+	      write(1, &temp, 2);
+	      //putchar(&temp);
+	    }     
+	  else
+	    write(1, &c, 1);
+	  //putchar (c);
+	}
+	else {
+	  fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
+	  exit(1);
+	}
+      }
 
     }
 
