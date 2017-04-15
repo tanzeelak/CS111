@@ -13,7 +13,7 @@
 /* Use this variable to remember original terminal attributes. */
 
 struct termios saved_attributes;
-pid_t pid;
+pid_t pid = -1;
 
 void
 reset_input_mode (void)
@@ -82,7 +82,8 @@ main (int argc, char* argv[])
   int rfd = 0;
   int optParse = 0;
   int shellFlag = 0;
-  int pipe1[2], pipe2[2];
+  int to_child_pipe[2]; 
+  int from_child_pipe[2];
 
 
   while (1)
@@ -103,65 +104,48 @@ main (int argc, char* argv[])
 	}
 
 
+      
+
+
       if (shellFlag) {
+
+
+	if (pipe(to_child_pipe) == -1)
+	  {
+	    fprintf(stderr, "pipe() failed!\n");
+	    exit(1);
+	  }
+	if (pipe(from_child_pipe) == -1) 
+	  {
+	    fprintf(stderr, "pipe() failed! \n");
+	    exit(1);
+	  }
+
 	pid = fork();
-	if (pid == 0)
+	if (pid > 0)
 	  {
-	    close(pipe1[1]);
-	    close(pipe2[0]);
-	    close(0);
-	    close(1);
-	    dup(pipe1[0]);
-	    dup(pipe2[1]);
-	    close(pipe1[0]);
-	    close(pipe2[1]);
-	    execvp("/bin/bash", NULL);
-	    return(2);
+	    close(to_child_pipe[0]);
+	    close(from_child_pipe[1]);
+	    char buffer[2048];
+	    int count = 0;
+	    count = read(STDIN_FILENO, buffer, 2048);
+	    write(to_child_pipe[1], buffer, count);
+	    count = read(from_child_pipe[0], buffer, 2048);
+	    write(STDOUT_FILENO, buffer, count);
 	  }
-	else if (pid < 0)
-	  {
-	    fprintf(stderr, "Failed to fork. %s\n", strerror(errno));
-	      exit(2);
-	  }
-	else 
-	  {
-	    /*
-	    close(pipe1[0]);
-	    close(pipe2[1]);
-	    close(1);
-	    close(0);
-	    dup(pipe1[1]);
-	    dup(pipe2[0]);
-	    close(pipe1[1]);
-	    close(pipe2[0]);
-	    
-	    char buff;
-	    int rfd = read (STDIN_FILENO, &c, 1);
-	    if (rfd >= 0) {
-	      if (c == '\004')
-		{
-		  reset_input_mode();
-		  break;
-		}
-	      else if (c == '\n' || c == '\r')
-		{
-		  char temp[2] = {'\r', '\n'};
-		  write(1, &temp, 2);
-		  write(pipe1[0], &buff, 1);
-		}
-	      else
-		{
-		  write(1, &c, 1);
-		  write(pipe1[0], &buff, 1);
-		}
-	    }
-	    else {
-	      fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
-	      exit(1);
-	    }
-	    
-	    return(2); */
-	  }
+	else if (pid == 0) {
+	  close(to_child_pipe[1]);
+	  close(from_child_pipe[0]);
+	  dup2(to_child_pipe[0], STDIN_FILENO);
+	  dup2(from_child_pipe[1], STDOUT_FILENO);
+	  close(to_child_pipe[0]);
+	  close(from_child_pipe[1]);
+	}
+	else {
+	  fprintf(stderr, "fork() failed!\n");
+	  exit(1);
+	}
+
 
 	
       }
