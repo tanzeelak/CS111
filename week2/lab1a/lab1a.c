@@ -163,6 +163,40 @@ int pipeSetup(void)
 }
 
 
+void setupPoll()
+{
+  fds[0].fd = open(optarg, O_RDWR);
+  fds[1].fd = open(0, O_RDWR);
+  fds[0].events = POLLIN | POLLHUP | POLLERR;
+  fds[1].events = POLLIN | POLLHUP | POLLERR;
+  ret = poll(fds, 2, timeout_msecs);
+  if (ret > 0) {
+    /* An event on one of the fds has occurred. */
+    for (i=0; i<2; i++) {
+      if (fds[i].revents & POLLIN) {
+        /* Priority data may be written on device number i. */
+
+      }
+      if ((fds[i].revents & POLLHUP) || (fds[i].revents & POLLERR)) {
+        /* A hangup has occurred on device number i. */
+
+      }
+    }
+  }
+  else if (ret == -1)
+    {
+      fprintf(stderr, "poll error %s\n", strerror(errno));
+    }
+  else {
+    printf("Timeout occrurred! No data after 3.5 seconds. \n");
+  }
+
+
+
+
+}
+
+
 
 int
 main (int argc, char* argv[])
