@@ -1,4 +1,5 @@
 #include <termios.h>
+#include <getopt.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -78,9 +79,32 @@ int readWrite(void)
 
 
 int
-main (void)
+main (int argc, char* argv[])
 {
 
+  //getoptparse
+  int optParse = 0;
+  int shellFlag = 0;
+
+  static struct option long_options[] = {
+    {"shell", no_argument, 0, 's'},
+    {0,0,0,0}
+  };
+
+  int option_index = 0;
+  optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index);
+  switch (optParse)
+    {
+    case 's':
+      shellFlag = 1;
+    default:
+      break;
+    }
+
+  if (shellFlag)
+    {
+      fprintf(stderr, "hell yeah\n");
+    }
   readWrite();
   return EXIT_SUCCESS;
 }
