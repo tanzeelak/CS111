@@ -121,6 +121,51 @@ int pipeRead(void)
 }
 
 
+
+
+void setupPoll()
+{
+  printf("or even here");
+  //goes outside the parent process
+  fds[0].fd = open(STDIN_FILENO, O_RDWR);
+  fds[1].fd = open(0, O_RDWR);
+  fds[0].events = POLLIN | POLLHUP | POLLERR;
+  fds[1].events = POLLIN | POLLHUP | POLLERR;
+  //  ret = poll(fds, 2, 0);
+  printf("right before loo");
+
+  //loop goes in the parent process
+  for (;;) {
+    int value = poll(fds, 2, 0);
+    
+    if (fds[0].revents & POLLIN) {
+      
+    }
+    if (fds[0].revents & (POLLHUP+POLLERR)) {
+    
+    }
+  }
+  /*  while ((ret = poll(fds, 2, 0)) > 0 ) {
+  
+    for (i=0; i<2; i++) {
+      if (fds[i].revents & POLLIN) {
+  
+	//READ GOES HERE
+       	pipeRead();
+	printf("lol does it enter ere\n");
+      }
+      if ((fds[i].revents & POLLHUP) || (fds[i].revents & POLLERR)) {
+  
+	exit(1);
+	printf("or here?\n");
+      }
+    }
+  }
+  */
+
+}
+
+
 int pipeSetup(void)
 {
   if (pipe(to_child_pipe) == -1)
@@ -134,9 +179,13 @@ int pipeSetup(void)
       exit(1);
     }
   
+
+  //  setupPoll();
+
   pid = fork();
-  if (pid > 0)
+  if (pid > 0)//parent
     {
+      //  setupPoll();
       close(to_child_pipe[0]);
       close(from_child_pipe[1]);
       char buffer[2048];
@@ -153,48 +202,25 @@ int pipeSetup(void)
     dup2(from_child_pipe[1], STDOUT_FILENO);
     close(to_child_pipe[0]);
     close(from_child_pipe[1]);
-    execvp("/bin/bash", NULL);
+    //    execvp("/bin/bash", NULL);
+    char *execvp_argv[2];
+    char execvp_filename[] = "/bin/bash";
+    execvp_argv[0] = execvp_filename;
+    execvp_argv[1] = NULL;
+    if (execvp(execvp_filename, execvp_argv) == -1) 
+      {
+	fprintf(stderr, "execvp() failed!\n");
+	exit(1);
+      }
   }
   else {
     fprintf(stderr, "fork() failed!\n");
     exit(1);
   }
-  pipeRead();
+  //  pipeRead();
 }
 
 
-void setupPoll()
-{
-  fds[0].fd = open(optarg, O_RDWR);
-  fds[1].fd = open(0, O_RDWR);
-  fds[0].events = POLLIN | POLLHUP | POLLERR;
-  fds[1].events = POLLIN | POLLHUP | POLLERR;
-  ret = poll(fds, 2, timeout_msecs);
-  if (ret > 0) {
-    /* An event on one of the fds has occurred. */
-    for (i=0; i<2; i++) {
-      if (fds[i].revents & POLLIN) {
-        /* Priority data may be written on device number i. */
-
-      }
-      if ((fds[i].revents & POLLHUP) || (fds[i].revents & POLLERR)) {
-        /* A hangup has occurred on device number i. */
-
-      }
-    }
-  }
-  else if (ret == -1)
-    {
-      fprintf(stderr, "poll error %s\n", strerror(errno));
-    }
-  else {
-    printf("Timeout occrurred! No data after 3.5 seconds. \n");
-  }
-
-
-
-
-}
 
 
 
@@ -226,6 +252,8 @@ main (int argc, char* argv[])
       fprintf(stderr, "hell yeah\n");
       pipeSetup();
     }
-  readWrite();
+  else {
+    readWrite();
+  }
   return EXIT_SUCCESS;
 }
