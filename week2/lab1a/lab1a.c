@@ -16,6 +16,11 @@ struct termios saved_attributes;
 int to_child_pipe[2];
 int from_child_pipe[2];
 pid_t pid = -1;
+struct pollfd fds[2];
+int timeout_msecs = 500;
+int ret;
+int i;
+
 
 void
 reset_input_mode (void)
@@ -42,9 +47,9 @@ set_input_mode (void)
 
   /* Set the funny terminal modes. */
   tcgetattr (STDIN_FILENO, &tattr);
-  tattr.c_lflag &= ~(ICANON|ECHO); /* Clear ICANON and ECHO. */
-  tattr.c_cc[VMIN] = 1;
-  tattr.c_cc[VTIME] = 0;
+  tattr.c_iflag = ISTRIP;
+  tattr.c_oflag = 0;
+  tattr.c_lflag = 0;
   tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
 }
 
@@ -66,11 +71,9 @@ int readWrite(void)
 	  {
 	    char temp[2] = {'\r', '\n'};
 	    write(1, &temp, 2);
-	    //putchar(&temp);
 	  }     
 	else
 	  write(1, &c, 1);
-	//putchar (c);
       }
       else {
 	fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
@@ -99,8 +102,10 @@ int pipeRead(void)
 	else if (c == '\n' || c == '\r')
 	  {
 	    char temp[2] = {'\r', '\n'};
+	    char temp2 = '\n';
 	    write(1, &temp, 2);
-	    write(to_child_pipe[1], &temp, 2); 
+	    write(to_child_pipe[1], &temp2, 2); 
+
 	  }     
 	else
 	  {
