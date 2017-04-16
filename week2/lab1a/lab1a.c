@@ -181,19 +181,39 @@ int pipeSetup(void)
   
 
   //  setupPoll();
+  fds[0].fd = STDIN_FILENO;
+  fds[1].fd = open(0, O_RDWR);
+  fds[0].events = POLLIN | POLLHUP | POLLERR;
+  fds[1].events = POLLIN | POLLHUP | POLLERR;
 
   pid = fork();
   if (pid > 0)//parent
     {
+
+
+      for (;;) {
+	int value = poll(fds, 2, 0);
+    
+	if (fds[0].revents & POLLIN) {
+	  close(to_child_pipe[0]);
+	  close(from_child_pipe[1]);
+	  char buffer[2048];
+	  int count = 0;
+	  count = read(STDIN_FILENO, buffer, 2048);
+	  write(to_child_pipe[1], buffer, count);
+	  count = read(from_child_pipe[0], buffer, 2048);
+	  write(STDOUT_FILENO, buffer, count);
+
+	  //	  pipeRead();
+	}
+	if (fds[0].revents & (POLLHUP+POLLERR)) {
+	  exit(1);
+	}
+      }
       //  setupPoll();
-      close(to_child_pipe[0]);
-      close(from_child_pipe[1]);
-      char buffer[2048];
-      int count = 0;
-      count = read(STDIN_FILENO, buffer, 2048);
-      write(to_child_pipe[1], buffer, count);
-      count = read(from_child_pipe[0], buffer, 2048);
-      write(STDOUT_FILENO, buffer, count);
+      //      close(to_child_pipe[0]);
+      //      close(from_child_pipe[1]);
+
     }
   else if (pid == 0) {
     close(to_child_pipe[1]);
