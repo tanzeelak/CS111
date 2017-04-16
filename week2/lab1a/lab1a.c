@@ -140,6 +140,7 @@ main (int argc, char* argv[])
 	  dup2(from_child_pipe[1], STDOUT_FILENO);
 	  close(to_child_pipe[0]);
 	  close(from_child_pipe[1]);
+	  execvp("/bin/bash", NULL);
 	}
 	else {
 	  fprintf(stderr, "fork() failed!\n");
@@ -158,10 +159,14 @@ main (int argc, char* argv[])
 	    {
 	      char temp[2] = {'\r', '\n'};
 	      write(1, &temp, 2);
+	      write(to_child_pipe[1], &temp, 2); 
 	      //putchar(&temp);
 	    }     
 	  else
-	    write(1, &c, 1);
+	    {
+	      write(1, &c, 1);
+	      write(to_child_pipe[1], &c, 1);
+	    }
 	  //putchar (c);
 	}
 	else {
