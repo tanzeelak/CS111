@@ -13,6 +13,9 @@
 /* Use this variable to remember original terminal attributes. */
 
 struct termios saved_attributes;
+int to_child_pipe[2];
+int from_child_pipe[2];
+pid_t pid = -1;
 
 void
 reset_input_mode (void)
@@ -78,6 +81,84 @@ int readWrite(void)
 }
 
 
+int pipeRead(void)
+{
+  char c;
+  set_input_mode ();
+  int rfd;
+
+  while(1)
+    {
+      rfd = read (STDIN_FILENO, &c, 1);
+      if (rfd >= 0) {
+	if (c == '\004')          /* C-d */
+	  {  
+	    reset_input_mode();
+	    break;
+	  }
+	else if (c == '\n' || c == '\r')
+	  {
+	    char temp[2] = {'\r', '\n'};
+	    write(1, &temp, 2);
+	    write(to_child_pipe[1], &temp, 2); 
+	  }     
+	else
+	  {
+	    write(1, &c, 1);
+	    write(to_child_pipe[1], &c, 1);
+	  }
+      }
+      else {
+	fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
+	exit(1);
+      }
+    }
+}
+
+
+int pipeSetup(void)
+{
+  if (pipe(to_child_pipe) == -1)
+    {
+      fprintf(stderr, "pipe() failed!\n");
+      exit(1);
+    }
+  if (pipe(from_child_pipe) == -1) 
+    {
+      fprintf(stderr, "pipe() failed! \n");
+      exit(1);
+    }
+  
+  pid = fork();
+  if (pid > 0)
+    {
+      close(to_child_pipe[0]);
+      close(from_child_pipe[1]);
+      char buffer[2048];
+      int count = 0;
+      count = read(STDIN_FILENO, buffer, 2048);
+      write(to_child_pipe[1], buffer, count);
+      count = read(from_child_pipe[0], buffer, 2048);
+      write(STDOUT_FILENO, buffer, count);
+    }
+  else if (pid == 0) {
+    close(to_child_pipe[1]);
+    close(from_child_pipe[0]);
+    dup2(to_child_pipe[0], STDIN_FILENO);
+    dup2(from_child_pipe[1], STDOUT_FILENO);
+    close(to_child_pipe[0]);
+    close(from_child_pipe[1]);
+    execvp("/bin/bash", NULL);
+  }
+  else {
+    fprintf(stderr, "fork() failed!\n");
+    exit(1);
+  }
+  pipeRead();
+}
+
+
+
 int
 main (int argc, char* argv[])
 {
@@ -104,6 +185,7 @@ main (int argc, char* argv[])
   if (shellFlag)
     {
       fprintf(stderr, "hell yeah\n");
+      pipeSetup();
     }
   readWrite();
   return EXIT_SUCCESS;
