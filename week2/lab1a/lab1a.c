@@ -145,23 +145,6 @@ void setupPoll()
     
     }
   }
-  /*  while ((ret = poll(fds, 2, 0)) > 0 ) {
-  
-    for (i=0; i<2; i++) {
-      if (fds[i].revents & POLLIN) {
-  
-	//READ GOES HERE
-       	pipeRead();
-	printf("lol does it enter ere\n");
-      }
-      if ((fds[i].revents & POLLHUP) || (fds[i].revents & POLLERR)) {
-  
-	exit(1);
-	printf("or here?\n");
-      }
-    }
-  }
-  */
 
 }
 
@@ -200,20 +183,24 @@ int pipeSetup(void)
 	  char buffer[2048];
 	  int count = 0;
 	  count = read(STDIN_FILENO, buffer, 2048);
+          int i;
+          for (i = 0; i < count; i++)
+            {
+              if (buffer[i] == '\r')
+                {
+                  buffer[i] = '\n';
+                }
+
+            }
+
 	  write(to_child_pipe[1], buffer, count);
 	  count = read(from_child_pipe[0], buffer, 2048);
 	  write(STDOUT_FILENO, buffer, count);
-
-	  //	  pipeRead();
 	}
 	if (fds[0].revents & (POLLHUP+POLLERR)) {
 	  exit(1);
 	}
       }
-      //  setupPoll();
-      //      close(to_child_pipe[0]);
-      //      close(from_child_pipe[1]);
-
     }
   else if (pid == 0) {
     close(to_child_pipe[1]);
@@ -237,7 +224,7 @@ int pipeSetup(void)
     fprintf(stderr, "fork() failed!\n");
     exit(1);
   }
-  //  pipeRead();
+
 }
 
 
