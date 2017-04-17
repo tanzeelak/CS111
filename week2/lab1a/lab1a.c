@@ -122,7 +122,7 @@ int pipeSetup(void)
 
 	  count = read(STDIN_FILENO, buffer, 2048);
 
-	  if (*buffer == '\004')
+	  /*	  if (*buffer == '\004')
 	    {
 	      close(to_child_pipe[1]);
 	      close(to_child_pipe[0]);
@@ -136,10 +136,26 @@ int pipeSetup(void)
 	      
 	      exit(0);
 	
-	      }
+	      }*/
           int i;
           for (i = 0; i < count; i++)
             {
+	      if (*buffer == '\004')
+		{
+		  close(to_child_pipe[1]);
+		  close(to_child_pipe[0]);
+		  
+		  write(to_child_pipe[1], buffer, count);
+	      
+		  close(from_child_pipe[1]);
+		  close(from_child_pipe[0]);
+		  
+		  kill(pid, SIGHUP);
+	      
+		  exit(0);
+	
+		}
+
               if (buffer[i] == '\r' || buffer[i] == '\n' )
                 {
                   buffer[i] = '\n';
