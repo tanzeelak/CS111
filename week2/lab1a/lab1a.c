@@ -165,7 +165,7 @@ int pipeSetup(void)
 
   //  setupPoll();
   fds[0].fd = STDIN_FILENO;
-  fds[1].fd = open(0, O_RDWR);
+  fds[1].fd = from_child_pipe[0];
   fds[0].events = POLLIN | POLLHUP | POLLERR;
   fds[1].events = POLLIN | POLLHUP | POLLERR;
 
@@ -203,22 +203,36 @@ int pipeSetup(void)
       }
     }
   else if (pid == 0) {
-    close(to_child_pipe[1]);
-    close(from_child_pipe[0]);
-    dup2(to_child_pipe[0], STDIN_FILENO);
-    dup2(from_child_pipe[1], STDOUT_FILENO);
-    close(to_child_pipe[0]);
-    close(from_child_pipe[1]);
-    //    execvp("/bin/bash", NULL);
-    char *execvp_argv[2];
-    char execvp_filename[] = "/bin/bash";
-    execvp_argv[0] = execvp_filename;
-    execvp_argv[1] = NULL;
-    if (execvp(execvp_filename, execvp_argv) == -1) 
-      {
-	fprintf(stderr, "execvp() failed!\n");
+
+    for (;;) {
+      int value = poll(fds, 2, 0);
+
+      //      if (fds[1].revents & POLLIN) {
+
+	close(to_child_pipe[1]);
+	close(from_child_pipe[0]);
+	dup2(to_child_pipe[0], STDIN_FILENO);
+      if (fds[1].revents & POLLIN) {
+	dup2(from_child_pipe[1], STDOUT_FILENO);
+	dup2(from_child_pipe[0], STDERR_FILENO);
+      }
+	close(to_child_pipe[0]);
+	close(from_child_pipe[1]);
+	char *execvp_argv[2];
+	char execvp_filename[] = "/bin/bash";
+	execvp_argv[0] = execvp_filename;
+	execvp_argv[1] = NULL;
+	if (execvp(execvp_filename, execvp_argv) == -1) 
+	  {
+	    fprintf(stderr, "execvp() failed!\n");
+	    exit(1);
+	  }
+
+      if (fds[1].revents & (POLLHUP+POLLERR)) {
 	exit(1);
       }
+    }
+
   }
   else {
     fprintf(stderr, "fork() failed!\n");
