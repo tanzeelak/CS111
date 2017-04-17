@@ -10,3 +10,4 @@ Sources:
 - "Executing a file", gnu.org, https://www.gnu.org/software/libc/manual/html_node/Executing-a-File.html
 - "Man Poll", pubs.opengroup.org, http://pubs.opengroup.org/onlinepubs/009695399/functions/poll.html
 - "poll()", beej.us, http://beej.us/guide/bgnet/output/html/multipage/pollman.html
+- "Program received signal SIGPIPE, Broken pipe.?", Hatem Mashaqi, http://stackoverflow.com/questions/18935446/program-received-signal-sigpipe-broken-pipe

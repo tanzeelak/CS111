@@ -54,6 +54,13 @@ set_input_mode (void)
   tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
 }
 
+void signal_callback_handler(int signum){
+
+  printf("Caught signal SIGPIPE %d\n",signum);
+  exit(1);
+}
+
+
 int readWrite(void)
 {
   char c;
@@ -108,7 +115,7 @@ int pipeSetup(void)
   if (pid > 0)//parent
     {
 
-
+      signal(SIGPIPE, signal_callback_handler);
       for (;;) {
 	int value = poll(fds, 2, 0);
     
@@ -122,21 +129,6 @@ int pipeSetup(void)
 
 	  count = read(STDIN_FILENO, buffer, 2048);
 
-	  /*	  if (*buffer == '\004')
-	    {
-	      close(to_child_pipe[1]);
-	      close(to_child_pipe[0]);
-	      
-	      write(to_child_pipe[1], buffer, count);
-	      
-	      close(from_child_pipe[1]);
-	      close(from_child_pipe[0]);
-	      
-	      kill(pid, SIGHUP);
-	      
-	      exit(0);
-	
-	      }*/
           int i;
           for (i = 0; i < count; i++)
             {
@@ -157,17 +149,7 @@ int pipeSetup(void)
 		}
 	      if (*buffer == 0x03) //control C
 		{
-
-		  //                  close(to_child_pipe[1]);
-		  //                  close(to_child_pipe[0]);
-
-		  //                  write(to_child_pipe[1], buffer, count);
-
-		  //                  close(from_child_pipe[1]);
-		  //                  close(from_child_pipe[0]);
-
-                  kill(pid, SIGHUP);
-
+                  kill(pid, SIGINT);
                   exit(0);
 		}
               if (buffer[i] == '\r' || buffer[i] == '\n' )
@@ -175,15 +157,18 @@ int pipeSetup(void)
                   buffer[i] = '\n';
 		  char temp[2] = {'\r', '\n'};
 		  write(1, temp, 2);
-		  //		  write(to_child_pipe[1], buffer, count);
                 }
 	      else {
 		write(1, &buffer[i], 1);
-		//		write(to_child_pipe[1], buffer, count);
 	      }
             }
 	  //forward to shell
 	  write(to_child_pipe[1], buffer, count);
+	}
+	if (fds[0].revents & (POLLHUP+POLLERR)) {
+	  fprintf(stderr, "ya entered");
+	  //	  signal(SIGPIPE, signal_callback_handler);
+	  //	  exit(1);
 	}
 	
 	//reading from shell
@@ -195,8 +180,6 @@ int pipeSetup(void)
 	    {
 	      if (buffer[j] == '\n')
 		{
-
-		  //                  buffer[j] = '\n';
                   char temp[2] = {'\r', '\n'};
                   write(1, temp, 2);
 		}
@@ -207,37 +190,35 @@ int pipeSetup(void)
 	  //	  write(STDOUT_FILENO, buffer, count);
 	}
 
-	if (fds[0].revents & (POLLHUP+POLLERR)) {
+	if (fds[1].revents & (POLLHUP+POLLERR)) {
+	  fprintf(stderr, "ya entered 2");
+	  fprintf(stderr, "SHELL EXIT SIGNAL=# STATUS=#");
+
 	  exit(1);
 	}
       }
     }
   else if (pid == 0) {
 
-    for (;;) {
-      int value = poll(fds, 2, 0);
-	close(to_child_pipe[1]);
-	close(from_child_pipe[0]);
-	dup2(to_child_pipe[0], STDIN_FILENO);
+    close(to_child_pipe[1]);
+    close(from_child_pipe[0]);
+    dup2(to_child_pipe[0], STDIN_FILENO);
 
-	dup2(from_child_pipe[1], STDOUT_FILENO);
-	dup2(from_child_pipe[0], STDERR_FILENO);
+    dup2(from_child_pipe[1], STDOUT_FILENO);
+    dup2(from_child_pipe[0], STDERR_FILENO);
 
-	close(to_child_pipe[0]);
-	close(from_child_pipe[1]);
-	char *execvp_argv[2];
-	char execvp_filename[] = "/bin/bash";
-	execvp_argv[0] = execvp_filename;
-	execvp_argv[1] = NULL;
-	if (execvp(execvp_filename, execvp_argv) == -1) 
-	  {
-	    fprintf(stderr, "execvp() failed!\n");
-	    exit(1);
-	  }
-
-
-    }
-
+    close(to_child_pipe[0]);
+    close(from_child_pipe[1]);
+    char *execvp_argv[2];
+    char execvp_filename[] = "/bin/bash";
+    execvp_argv[0] = execvp_filename;
+    execvp_argv[1] = NULL;
+    if (execvp(execvp_filename, execvp_argv) == -1) 
+      {
+	fprintf(stderr, "execvp() failed!\n");
+	exit(1);
+      }
+    
   }
   else {
     fprintf(stderr, "fork() failed!\n");
@@ -245,9 +226,6 @@ int pipeSetup(void)
   }
 
 }
-
-
-
 
 
 int
@@ -274,9 +252,10 @@ main (int argc, char* argv[])
       break;
     }
 
+
+
   if (shellFlag)
     {
-
       pipeSetup();
     }
   else {
