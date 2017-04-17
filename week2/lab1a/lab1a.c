@@ -140,7 +140,7 @@ int pipeSetup(void)
           int i;
           for (i = 0; i < count; i++)
             {
-	      if (*buffer == '\004')
+	      if (*buffer == '\004') //control D
 		{
 		  close(to_child_pipe[1]);
 		  close(to_child_pipe[0]);
@@ -155,7 +155,21 @@ int pipeSetup(void)
 		  exit(0);
 	
 		}
+	      if (*buffer == 0x03) //control C
+		{
 
+		  //                  close(to_child_pipe[1]);
+		  //                  close(to_child_pipe[0]);
+
+		  //                  write(to_child_pipe[1], buffer, count);
+
+		  //                  close(from_child_pipe[1]);
+		  //                  close(from_child_pipe[0]);
+
+                  kill(pid, SIGHUP);
+
+                  exit(0);
+		}
               if (buffer[i] == '\r' || buffer[i] == '\n' )
                 {
                   buffer[i] = '\n';
@@ -262,7 +276,7 @@ main (int argc, char* argv[])
 
   if (shellFlag)
     {
-      fprintf(stderr, "hell yeah\n");
+
       pipeSetup();
     }
   else {
