@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <signal.h>
 
 /* Use this variable to remember original terminal attributes. */
 
@@ -83,72 +84,6 @@ int readWrite(void)
   
 }
 
-
-int pipeRead(void)
-{
-  char c;
-  set_input_mode ();
-  int rfd;
-
-  while(1)
-    {
-      rfd = read (STDIN_FILENO, &c, 1);
-      if (rfd >= 0) {
-	if (c == '\004')          /* C-d */
-	  {  
-	    reset_input_mode();
-	    break;
-	  }
-	else if (c == '\n' || c == '\r')
-	  {
-	    char temp[2] = {'\r', '\n'};
-	    char temp2 = '\n';
-	    write(1, &temp, 2);
-	    write(to_child_pipe[1], &temp2, 2); 
-
-	  }     
-	else
-	  {
-	    write(1, &c, 1);
-	    write(to_child_pipe[1], &c, 1);
-	  }
-      }
-      else {
-	fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
-	exit(1);
-      }
-    }
-}
-
-
-
-
-void setupPoll()
-{
-  printf("or even here");
-  //goes outside the parent process
-  fds[0].fd = open(STDIN_FILENO, O_RDWR);
-  fds[1].fd = open(0, O_RDWR);
-  fds[0].events = POLLIN | POLLHUP | POLLERR;
-  fds[1].events = POLLIN | POLLHUP | POLLERR;
-  //  ret = poll(fds, 2, 0);
-  printf("right before loo");
-
-  //loop goes in the parent process
-  for (;;) {
-    int value = poll(fds, 2, 0);
-    
-    if (fds[0].revents & POLLIN) {
-      
-    }
-    if (fds[0].revents & (POLLHUP+POLLERR)) {
-    
-    }
-  }
-
-}
-
-
 int pipeSetup(void)
 {
   if (pipe(to_child_pipe) == -1)
@@ -190,6 +125,21 @@ int pipeSetup(void)
                 {
                   buffer[i] = '\n';
                 }
+	      if (buffer[i] == '\004')
+		{
+		  close(to_child_pipe[0]);
+		  close(to_child_pipe[1]);
+
+		  write(to_child_pipe[1], buffer, count);
+		  
+		  close(from_child_pipe[0]);
+		  close(from_child_pipe[1]);
+		  
+
+		  kill(pid, SIGINT);
+		  exit(1);
+		     
+		}
 
             }
 
