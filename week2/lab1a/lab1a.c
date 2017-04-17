@@ -17,6 +17,8 @@ struct termios saved_attributes;
 int to_child_pipe[2];
 int from_child_pipe[2];
 pid_t pid = -1;
+pid_t w;
+int status;
 struct pollfd fds[2];
 int timeout_msecs = 500;
 int ret;
@@ -55,7 +57,7 @@ set_input_mode (void)
 }
 
 void signal_callback_handler(int signum){
-
+  //WAIT PID CASE 2
   printf("Caught signal SIGPIPE %d\n",signum);
   exit(1);
 }
@@ -112,6 +114,8 @@ int pipeSetup(void)
   fds[1].events = POLLIN | POLLHUP | POLLERR;
 
   pid = fork();
+  fprintf(stderr, "%d", pid);
+
   if (pid > 0)//parent
     {
 
@@ -134,6 +138,7 @@ int pipeSetup(void)
             {
 	      if (*buffer == '\004') //control D
 		{
+		  //WAIT PID CASE 1
 		  close(to_child_pipe[1]);
 		  close(to_child_pipe[0]);
 		  
@@ -167,8 +172,7 @@ int pipeSetup(void)
 	}
 	if (fds[0].revents & (POLLHUP+POLLERR)) {
 	  fprintf(stderr, "ya entered");
-	  //	  signal(SIGPIPE, signal_callback_handler);
-	  //	  exit(1);
+	
 	}
 	
 	//reading from shell
@@ -191,8 +195,21 @@ int pipeSetup(void)
 	}
 
 	if (fds[1].revents & (POLLHUP+POLLERR)) {
-	  fprintf(stderr, "ya entered 2");
-	  fprintf(stderr, "SHELL EXIT SIGNAL=# STATUS=#");
+	  //WAIT PID #3
+	  
+	  //testing
+	  //on terminal: ./lab1a --shell (will show first four numbers)
+	  //second terminal: ps -ef | grep shell
+	  //kill -n 13 (those four numbers)
+
+	  fprintf(stderr, "%d", pid);
+
+	  w = waitpid(pid, &status, 0);
+
+	  int upper = status&0xF0;
+	  int lower = status&0x0F;
+
+	  fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
 
 	  exit(1);
 	}
