@@ -58,6 +58,16 @@ set_input_mode (void)
 
 void signal_callback_handler(int signum){
   //WAIT PID CASE 2
+
+  fprintf(stderr, "in signal handler: %d", pid);
+
+  w = waitpid(pid, &status, 0);
+
+  int upper = status&0xF0;
+  int lower = status&0x0F;
+
+  fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+
   printf("Caught signal SIGPIPE %d\n",signum);
   exit(1);
 }
@@ -147,7 +157,14 @@ int pipeSetup(void)
 		  close(from_child_pipe[1]);
 		  close(from_child_pipe[0]);
 		  
-		  kill(pid, SIGHUP);
+		  fprintf(stderr, "%d", pid);
+	  
+		  waitpid(pid, &status, 0);
+
+		  int upper = status&0xF0;
+		  int lower = status&0x0F;
+
+		  fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
 	      
 		  exit(0);
 	
