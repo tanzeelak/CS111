@@ -116,38 +116,65 @@ int pipeSetup(void)
 	close(from_child_pipe[1]);
 	char buffer[2048];
 	int count = 0;
+
+	//reading from keyboard
 	if (fds[0].revents & POLLIN) {
 
 	  count = read(STDIN_FILENO, buffer, 2048);
+
+	  if (*buffer == '\004')
+	    {
+	      close(to_child_pipe[1]);
+	      close(to_child_pipe[0]);
+	      
+	      write(to_child_pipe[1], buffer, count);
+	      
+	      close(from_child_pipe[1]);
+	      close(from_child_pipe[0]);
+	      
+	      kill(pid, SIGHUP);
+	      
+	      exit(0);
+	
+	      }
           int i;
           for (i = 0; i < count; i++)
             {
-              if (buffer[i] == '\r' )
+              if (buffer[i] == '\r' || buffer[i] == '\n' )
                 {
                   buffer[i] = '\n';
 		  char temp[2] = {'\r', '\n'};
 		  write(1, temp, 2);
+		  //		  write(to_child_pipe[1], buffer, count);
                 }
 	      else {
 		write(1, &buffer[i], 1);
+		//		write(to_child_pipe[1], buffer, count);
 	      }
             }
-	  
+	  //forward to shell
 	  write(to_child_pipe[1], buffer, count);
 	}
 	
+	//reading from shell
 	if (fds[1].revents & POLLIN) {
 
 	  count = read(from_child_pipe[0], buffer, 2048);
 	  int j;
 	  for (j = 0; j < count; j++)
 	    {
-	      if (buffer[i] == '\n')
+	      if (buffer[j] == '\n')
 		{
-		  buffer[i] = '\r';
+
+		  //                  buffer[j] = '\n';
+                  char temp[2] = {'\r', '\n'};
+                  write(1, temp, 2);
 		}
+	      else {
+		write(1, &buffer[j], 1);
+	      }
 	    }
-	  write(STDOUT_FILENO, buffer, count);
+	  //	  write(STDOUT_FILENO, buffer, count);
 	}
 
 	if (fds[0].revents & (POLLHUP+POLLERR)) {
@@ -159,9 +186,6 @@ int pipeSetup(void)
 
     for (;;) {
       int value = poll(fds, 2, 0);
-
-      //      if (fds[1].revents & POLLIN) {
-
 	close(to_child_pipe[1]);
 	close(from_child_pipe[0]);
 	dup2(to_child_pipe[0], STDIN_FILENO);
@@ -200,6 +224,7 @@ int
 main (int argc, char* argv[])
 {
 
+  set_input_mode();
   //getoptparse
   int optParse = 0;
   int shellFlag = 0;
