@@ -112,41 +112,44 @@ int pipeSetup(void)
       for (;;) {
 	int value = poll(fds, 2, 0);
     
+	close(to_child_pipe[0]);
+	close(from_child_pipe[1]);
+	char buffer[2048];
+	int count = 0;
 	if (fds[0].revents & POLLIN) {
-	  close(to_child_pipe[0]);
-	  close(from_child_pipe[1]);
-	  char buffer[2048];
-	  int count = 0;
+
 	  count = read(STDIN_FILENO, buffer, 2048);
           int i;
           for (i = 0; i < count; i++)
             {
-              if (buffer[i] == '\r')
+              if (buffer[i] == '\r' )
                 {
                   buffer[i] = '\n';
+		  char temp[2] = {'\r', '\n'};
+		  write(1, temp, 2);
                 }
-	      if (buffer[i] == '\004')
-		{
-		  close(to_child_pipe[0]);
-		  close(to_child_pipe[1]);
-
-		  write(to_child_pipe[1], buffer, count);
-		  
-		  close(from_child_pipe[0]);
-		  close(from_child_pipe[1]);
-		  
-
-		  kill(pid, SIGINT);
-		  exit(1);
-		     
-		}
-
+	      else {
+		write(1, &buffer[i], 1);
+	      }
             }
-
+	  
 	  write(to_child_pipe[1], buffer, count);
+	}
+	
+	if (fds[1].revents & POLLIN) {
+
 	  count = read(from_child_pipe[0], buffer, 2048);
+	  int j;
+	  for (j = 0; j < count; j++)
+	    {
+	      if (buffer[i] == '\n')
+		{
+		  buffer[i] = '\r';
+		}
+	    }
 	  write(STDOUT_FILENO, buffer, count);
 	}
+
 	if (fds[0].revents & (POLLHUP+POLLERR)) {
 	  exit(1);
 	}
@@ -162,10 +165,10 @@ int pipeSetup(void)
 	close(to_child_pipe[1]);
 	close(from_child_pipe[0]);
 	dup2(to_child_pipe[0], STDIN_FILENO);
-      if (fds[1].revents & POLLIN) {
+
 	dup2(from_child_pipe[1], STDOUT_FILENO);
 	dup2(from_child_pipe[0], STDERR_FILENO);
-      }
+
 	close(to_child_pipe[0]);
 	close(from_child_pipe[1]);
 	char *execvp_argv[2];
@@ -178,9 +181,7 @@ int pipeSetup(void)
 	    exit(1);
 	  }
 
-      if (fds[1].revents & (POLLHUP+POLLERR)) {
-	exit(1);
-      }
+
     }
 
   }
