@@ -24,18 +24,11 @@ int timeout_msecs = 500;
 int ret;
 int i;
 
-
-
 void sysFailed(char* sysCall, int exitNum)
 {
     fprintf(stderr, "%s failed: %s\n", sysCall, strerror(errno));
     exit(exitNum);
 }
-
-
-//write
-//pipe
-//fork
 
 void
 reset_input_mode (void)
@@ -112,21 +105,21 @@ void signal_callback_handler(int signum){
 
 int readWrite(void)
 {
-  char c;
+  char buffer[2048];
   int rfd;
   while (1)
     {
-      if ((rfd = read (STDIN_FILENO, &c, 1)) ==  -1)
+      if ((rfd = read (STDIN_FILENO, buffer, 1)) ==  -1)
 	{
-	  sysFailed("read", 1);
+	  sysFailed("read", 2);
 	}
-      if (rfd >= 0) {
-	if (c == '\004')          /* C-d */
+      if (rfd > 0) {
+	if (*buffer == '\004')
 	  {  
 	    reset_input_mode();
 	    break;
 	  }
-	else if (c == '\n' || c == '\r')
+	else if (*buffer == '\n' || *buffer == '\r')
 	  {
 	    char temp[2] = {'\r', '\n'};
 	    if (write(1, &temp, 2) == -1)
@@ -136,16 +129,13 @@ int readWrite(void)
 	  }     
 	else
 	  {
-	    if(write(1, &c, 1) == -1)
+	    if(write(1, buffer, 1) == -1)
 	      {
 		sysFailed("write", 1);
 	      }
 	  }
       }
-      else {
-	fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
-	exit(2);
-      }
+
     }
   
 }
@@ -163,8 +153,6 @@ int pipeSetup(void)
       exit(1);
     }
   
-
-  //  setupPoll();
   fds[0].fd = STDIN_FILENO;
   fds[1].fd = from_child_pipe[0];
   fds[0].events = POLLIN | POLLHUP | POLLERR;
@@ -221,8 +209,6 @@ int pipeSetup(void)
 		    {
 		      sysFailed("Read", 1);
 		    }
-		  //		  fprintf(stderr, "%d", pid);
-	  
 		  w = waitpid(pid, &status, 0);
 		  if (w == -1)
 		    {
@@ -315,14 +301,6 @@ int pipeSetup(void)
 	}
 
 	if (fds[1].revents & (POLLHUP+POLLERR)) {
-	  //WAIT PID #3
-	  
-	  //testing
-	  //on terminal: ./lab1a --shell (will show first four numbers)
-	  //second terminal: ps -ef | grep shell
-	  //kill -n 13 (those four numbers)
-
-	  //	  fprintf(stderr, "%d", pid);
 
 	  w = waitpid(pid, &status, 0);
 	  if (w == -1)
@@ -346,14 +324,31 @@ int pipeSetup(void)
       {
 	sysFailed("close", 1);
       }
-    close(from_child_pipe[0]);
-    dup2(to_child_pipe[0], STDIN_FILENO);
+    
+    if (close(from_child_pipe[0]) == -1)
+      {
+	sysFailed("close", 1);
+      }
+    
+    if (dup2(to_child_pipe[0], STDIN_FILENO) == -1)
+      {
+	sysFailed("dup2", 1);
+      }
 
-    dup2(from_child_pipe[1], STDOUT_FILENO);
-    dup2(from_child_pipe[0], STDERR_FILENO);
+    if (dup2(from_child_pipe[1], STDOUT_FILENO) == -1)
+      {
+	sysFailed("dup2", 1);
+      }
 
-    close(to_child_pipe[0]);
-    close(from_child_pipe[1]);
+    if (close(to_child_pipe[0]) == -1)
+      {
+	sysFailed("close", 1);
+      }
+    
+    if (close(from_child_pipe[1]) == -1)
+      {
+	sysFailed("close", 1);
+      }
     char *execvp_argv[2];
     char execvp_filename[] = "/bin/bash";
     execvp_argv[0] = execvp_filename;
@@ -378,7 +373,6 @@ main (int argc, char* argv[])
 {
 
   set_input_mode();
-  //getoptparse
   int optParse = 0;
   int shellFlag = 0;
 
@@ -388,7 +382,6 @@ main (int argc, char* argv[])
   };
 
   int option_index = 0;
-
   while((optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index)) != -1){
     switch (optParse)
       {
@@ -402,8 +395,6 @@ main (int argc, char* argv[])
 	break;
       }
   }
-
-
 
   if (shellFlag)
     {
