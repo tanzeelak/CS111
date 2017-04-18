@@ -78,7 +78,6 @@ void signal_callback_handler(int signum){
 int readWrite(void)
 {
   char c;
-  set_input_mode ();
   int rfd;
   while (1)
     {
@@ -289,14 +288,24 @@ main (int argc, char* argv[])
   };
 
   int option_index = 0;
-  optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index);
-  switch (optParse)
-    {
-    case 's':
-      shellFlag = 1;
-    default:
-      break;
-    }
+
+  while((optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index)) != -1){
+    //  int option_index = 0;                                                                                    
+    //  optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index);                                
+    switch (optParse)
+      {
+      case 's':
+	shellFlag = 1;
+	break;
+      case '?':
+	fprintf(stderr, "--shell argument to pass input/output between the terminal and a shell:");
+	exit(1);
+      default:
+	break;
+      }
+  }
+
+
 
   if (shellFlag)
     {
