@@ -24,55 +24,14 @@ int timeout_msecs = 500;
 int ret;
 int i;
 
-void closeFail(int exitNum)
+
+
+void sysFailed(char* sysCall, int exitNum)
 {
-  fprintf(stderr, "Closed failed: %s\n", strerror(errno));
-  exit(exitNum);
+    fprintf(stderr, "%s failed: %s\n", sysCall, strerror(errno));
+    exit(exitNum);
 }
 
-void writeFail(int exitNum)
-{
-  fprintf(stderr, "Wait failed: %s\n", strerror(errno));
-  exit(exitNum);
-}
-
-void killFail(int exitNum)
-{
-  fprintf(stderr, "Kill failed: %s\n", strerror(errno));
-  exit(exitNum);
-
-}
-
-void pipeFail(int exitNum)
-{
-  fprintf(stderr, "Pipe failed: %s\n", strerror(errno));
-  exit(exitNum);
-
-}
-
-void tcgetFail(int exitNum)
-{
-  fprintf(stderr, "Pipe failed: %s\n", strerror(errno));
-  exit(exitNum);
-}
-
-void tcsetFail(int exitNum)
-{
-  fprintf(stderr, "Pipe failed: %s\n", strerror(errno));
-  exit(exitNum);
-}
-
-void atexitFail(int exitNum)
-{
-  fprintf(stderr, "Pipe failed: %s\n", strerror(errno));
-  exit(exitNum);
-}
-
-void readFail(int exitNum)
-{
-  fprintf(stderr, "Pipe failed: %s\n", strerror(errno));
-  exit(exitNum);
-}
 
 //write
 //pipe
@@ -81,7 +40,10 @@ void readFail(int exitNum)
 void
 reset_input_mode (void)
 {
-  tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes);
+  if (tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes) == -1)
+    {
+      sysFailed("tcsetattr", 1);
+    }
 }
 
 void
@@ -98,15 +60,28 @@ set_input_mode (void)
     }
 
   /* Save the terminal attributes so we can restore them later. */
-  tcgetattr (STDIN_FILENO, &saved_attributes);
-  atexit (reset_input_mode);
+  if (tcgetattr (STDIN_FILENO, &saved_attributes) == -1)
+    {
+      sysFailed("tcgetattr", 1);
+    }
+  if(atexit (reset_input_mode) == -1) 
+    {
+      sysFailed("atexit", 1);
+    }
 
   /* Set the funny terminal modes. */
-  tcgetattr (STDIN_FILENO, &tattr);
+  if (tcgetattr (STDIN_FILENO, &tattr) == -1)
+    {
+      sysFailed("tcgetattr", 1);
+    }
   tattr.c_iflag = ISTRIP;
   tattr.c_oflag = 0;
   tattr.c_lflag = 0;
-  tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
+  
+  if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr) == -1)
+    {
+      sysFailed("tcsetattr", 1);
+    }
 }
 
 void signal_callback_handler(int signum){
@@ -114,7 +89,10 @@ void signal_callback_handler(int signum){
 
   //  fprintf(stderr, "in signal handler: %d", pid);
 
-  kill(pid, SIGINT);
+  if (kill(pid, SIGINT) == -1)
+    {
+      sysFailed("kill", 1);
+    }
 
   w = waitpid(pid, &status, 0);
   if (w == -1)
@@ -132,16 +110,16 @@ void signal_callback_handler(int signum){
   exit(1);
 }
 
-
-
-
 int readWrite(void)
 {
   char c;
   int rfd;
   while (1)
     {
-      rfd = read (STDIN_FILENO, &c, 1);
+      if ((rfd = read (STDIN_FILENO, &c, 1)) ==  -1)
+	{
+	  sysFailed("read", 1);
+	}
       if (rfd >= 0) {
 	if (c == '\004')          /* C-d */
 	  {  
@@ -151,10 +129,18 @@ int readWrite(void)
 	else if (c == '\n' || c == '\r')
 	  {
 	    char temp[2] = {'\r', '\n'};
-	    write(1, &temp, 2);
+	    if (write(1, &temp, 2) == -1)
+	      {
+		sysFailed("write", 1);
+	      }
 	  }     
 	else
-	  write(1, &c, 1);
+	  {
+	    if(write(1, &c, 1) == -1)
+	      {
+		sysFailed("write", 1);
+	      }
+	  }
       }
       else {
 	fprintf(stderr, "Failed to read file. %s\n", strerror(errno));
@@ -184,26 +170,39 @@ int pipeSetup(void)
   fds[0].events = POLLIN | POLLHUP | POLLERR;
   fds[1].events = POLLIN | POLLHUP | POLLERR;
 
-  pid = fork();
-  fprintf(stderr, "%d", pid);
+  if ((pid = fork()) == -1)
+    {
+      sysFailed("fork", 1);
+    }
+  //  fprintf(stderr, "%d", pid);
 
   if (pid > 0)//parent
     {
 
       signal(SIGPIPE, signal_callback_handler);
+
+      if (close(to_child_pipe[0]) == -1)
+	{
+	  sysFailed("close", 1);
+	}
+      
+      if (close(from_child_pipe[1]) == -1)
+	{
+	  sysFailed("close", 1);
+	}
+
       for (;;) {
 	int value = poll(fds, 2, 0);
-    
-	close(to_child_pipe[0]);
-
-	close(from_child_pipe[1]);
 	char buffer[2048];
 	int count = 0;
 
 	//reading from keyboard
 	if (fds[0].revents & POLLIN) {
 
-	  count = read(STDIN_FILENO, buffer, 2048);
+	  if ((count = read(STDIN_FILENO, buffer, 2048)) == -1)
+	    {
+	      sysFailed("Read", 1);
+	    }
 
           int i;
           for (i = 0; i < count; i++)
@@ -213,12 +212,15 @@ int pipeSetup(void)
 		  //WAIT PID CASE 1
 
 
-		  close(to_child_pipe[1]);
-		  close(to_child_pipe[0]);
+		  if(close(to_child_pipe[1]) == -1)
+		    {
+		      sysFailed("Close", 1);
+		    }
 		  
-		  read(from_child_pipe[0], buffer, 2048);
-
-
+		  if (read(from_child_pipe[0], buffer, 2048) == -1)
+		    {
+		      sysFailed("Read", 1);
+		    }
 		  //		  fprintf(stderr, "%d", pid);
 	  
 		  w = waitpid(pid, &status, 0);
@@ -232,14 +234,15 @@ int pipeSetup(void)
 		  int lower = status&0x0F;
 
 		  fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
-
-	      
 		  exit(0);
 	
 		}
 	      if (*buffer == 0x03) //control C
 		{
-                  kill(pid, SIGINT);
+                  if(kill(pid, SIGINT) == -1)
+		    {
+		      sysFailed("Kill", 1);
+		    }
 
 		  waitpid(pid, &status, 0);
 		  if (w == -1)
@@ -253,21 +256,29 @@ int pipeSetup(void)
 
 		  fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
 
-
                   exit(0);
 		}
               if (buffer[i] == '\r' || buffer[i] == '\n' )
                 {
                   buffer[i] = '\n';
 		  char temp[2] = {'\r', '\n'};
-		  write(1, temp, 2);
+		  if (write(1, temp, 2) == -1)
+		    {
+		      sysFailed("write", 1);
+		    }
                 }
 	      else {
-		write(1, &buffer[i], 1);
+		if (write(1, &buffer[i], 1) == -1)
+		  {
+		    sysFailed("write", 1);
+		  }
 	      }
             }
 	  //forward to shell
-	  write(to_child_pipe[1], buffer, count);
+	  if (write(to_child_pipe[1], buffer, count) == -1)
+	    {
+	      sysFailed("write", 1);
+	    }
 	}
 	if (fds[0].revents & (POLLHUP+POLLERR)) {
 	  fprintf(stderr, "ya entered");
@@ -277,17 +288,28 @@ int pipeSetup(void)
 	//reading from shell
 	if (fds[1].revents & POLLIN) {
 
-	  count = read(from_child_pipe[0], buffer, 2048);
+	  if ((count = read(from_child_pipe[0], buffer, 2048)) == -1)
+	    {
+	      sysFailed("read", 1);
+	    }
 	  int j;
 	  for (j = 0; j < count; j++)
 	    {
 	      if (buffer[j] == '\n')
 		{
                   char temp[2] = {'\r', '\n'};
-                  write(1, temp, 2);
+		  
+                  if (write(1, temp, 2) == -1)
+		    {
+		      sysFailed("write", 1);
+		    }
 		}
 	      else {
-		write(1, &buffer[j], 1);
+		
+		if (write(1, &buffer[j], 1) == -1)
+		  {
+		    sysFailed("write", 1);
+		  }
 	      }
 	    }
 	}
@@ -320,7 +342,10 @@ int pipeSetup(void)
     }
   else if (pid == 0) {
 
-    close(to_child_pipe[1]);
+    if (close(to_child_pipe[1]) == -1)
+      {
+	sysFailed("close", 1);
+      }
     close(from_child_pipe[0]);
     dup2(to_child_pipe[0], STDIN_FILENO);
 
