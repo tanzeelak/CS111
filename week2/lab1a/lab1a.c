@@ -103,7 +103,7 @@ void signal_callback_handler(int signum){
   exit(1);
 }
 
-int readWrite(void)
+int inputOutput(void)
 {
   char buffer[2048];
   int rfd;
@@ -121,8 +121,8 @@ int readWrite(void)
 	  }
 	else if (*buffer == '\n' || *buffer == '\r')
 	  {
-	    char temp[2] = {'\r', '\n'};
-	    if (write(1, &temp, 2) == -1)
+	    char smol[2] = {'\r', '\n'};
+	    if (write(1, &smol, 2) == -1)
 	      {
 		sysFailed("write", 1);
 	      }
@@ -162,7 +162,6 @@ int pipeSetup(void)
     {
       sysFailed("fork", 1);
     }
-  //  fprintf(stderr, "%d", pid);
 
   if (pid > 0)//parent
     {
@@ -401,7 +400,7 @@ main (int argc, char* argv[])
       pipeSetup();
     }
   else {
-    readWrite();
+    inputOutput();
   }
   return EXIT_SUCCESS;
 }
