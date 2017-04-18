@@ -339,6 +339,11 @@ int pipeSetup(void)
 	sysFailed("dup2", 1);
       }
 
+    if (dup2(from_child_pipe[1], 2) == -1)
+      {
+	sysFailed("dup2", 1);
+      }
+
     if (close(to_child_pipe[0]) == -1)
       {
 	sysFailed("close", 1);

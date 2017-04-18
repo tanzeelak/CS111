@@ -17,3 +17,4 @@ Sources:
 - "poll()", beej.us, http://beej.us/guide/bgnet/output/html/multipage/pollman.html
 - "Program received signal SIGPIPE, Broken pipe.?", Hatem Mashaqi, http://stackoverflow.com/questions/18935446/program-received-signal-sigpipe-broken-pipe
 - "waitpid() - Unix, Linux System Call", tutorialspoint.com, http://www.tutorialspoint.com/unix_system_calls/waitpid.htm
+- TA discussion slides from 1A and 1B
