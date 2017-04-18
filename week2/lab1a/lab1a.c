@@ -24,6 +24,59 @@ int timeout_msecs = 500;
 int ret;
 int i;
 
+void closeFail(int exitNum)
+{
+  fprintf(stderr, "Closed failed: %s\n", strerror(errno));
+  exit(exitNum);
+}
+
+void writeFail(int exitNum)
+{
+  fprintf(stderr, "Wait failed: %s\n", strerror(errno));
+  exit(exitNum);
+}
+
+void killFail(int exitNum)
+{
+  fprintf(stderr, "Kill failed: %s\n", strerror(errno));
+  exit(exitNum);
+
+}
+
+void pipeFail(int exitNum)
+{
+  fprintf(stderr, "Pipe failed: %s\n", strerror(errno));
+  exit(exitNum);
+
+}
+
+void tcgetFail(int exitNum)
+{
+  fprintf(stderr, "Pipe failed: %s\n", strerror(errno));
+  exit(exitNum);
+}
+
+void tcsetFail(int exitNum)
+{
+  fprintf(stderr, "Pipe failed: %s\n", strerror(errno));
+  exit(exitNum);
+}
+
+void atexitFail(int exitNum)
+{
+  fprintf(stderr, "Pipe failed: %s\n", strerror(errno));
+  exit(exitNum);
+}
+
+void readFail(int exitNum)
+{
+  fprintf(stderr, "Pipe failed: %s\n", strerror(errno));
+  exit(exitNum);
+}
+
+//write
+//pipe
+//fork
 
 void
 reset_input_mode (void)
@@ -59,11 +112,16 @@ set_input_mode (void)
 void signal_callback_handler(int signum){
   //WAIT PID CASE 2
 
-  fprintf(stderr, "in signal handler: %d", pid);
+  //  fprintf(stderr, "in signal handler: %d", pid);
 
   kill(pid, SIGINT);
 
   w = waitpid(pid, &status, 0);
+  if (w == -1)
+    {
+      fprintf(stderr, "Waitpid failed: %s\n", strerror(errno));
+      exit(1);
+    }
 
   int upper = status&0xF0;
   int lower = status&0x0F;
@@ -73,6 +131,8 @@ void signal_callback_handler(int signum){
   printf("Caught signal SIGPIPE %d\n",signum);
   exit(1);
 }
+
+
 
 
 int readWrite(void)
@@ -135,6 +195,7 @@ int pipeSetup(void)
 	int value = poll(fds, 2, 0);
     
 	close(to_child_pipe[0]);
+
 	close(from_child_pipe[1]);
 	char buffer[2048];
 	int count = 0;
@@ -150,17 +211,22 @@ int pipeSetup(void)
 	      if (*buffer == '\004') //control D
 		{
 		  //WAIT PID CASE 1
+
+
 		  close(to_child_pipe[1]);
 		  close(to_child_pipe[0]);
 		  
-		  write(to_child_pipe[1], buffer, count);
-	      
-		  close(from_child_pipe[1]);
-		  close(from_child_pipe[0]);
-		  
-		  fprintf(stderr, "%d", pid);
+		  read(from_child_pipe[0], buffer, 2048);
+
+
+		  //		  fprintf(stderr, "%d", pid);
 	  
-		  waitpid(pid, &status, 0);
+		  w = waitpid(pid, &status, 0);
+		  if (w == -1)
+		    {
+		      fprintf(stderr, "Waitpid failed: %s\n", strerror(errno));
+		      exit(1);
+		    }
 
 		  int upper = status&0xF0;
 		  int lower = status&0x0F;
@@ -176,6 +242,11 @@ int pipeSetup(void)
                   kill(pid, SIGINT);
 
 		  waitpid(pid, &status, 0);
+		  if (w == -1)
+		    {
+		      fprintf(stderr, "waitpid failed: %s\n", strerror(errno));
+		      exit(1);
+		    }
 
 		  int upper = status&0xF0;
 		  int lower = status&0x0F;
@@ -219,7 +290,6 @@ int pipeSetup(void)
 		write(1, &buffer[j], 1);
 	      }
 	    }
-	  //	  write(STDOUT_FILENO, buffer, count);
 	}
 
 	if (fds[1].revents & (POLLHUP+POLLERR)) {
@@ -230,9 +300,14 @@ int pipeSetup(void)
 	  //second terminal: ps -ef | grep shell
 	  //kill -n 13 (those four numbers)
 
-	  fprintf(stderr, "%d", pid);
+	  //	  fprintf(stderr, "%d", pid);
 
 	  w = waitpid(pid, &status, 0);
+	  if (w == -1)
+	    {
+	      fprintf(stderr, "waitpid failed: %s\n", strerror(errno));
+	      exit(1);
+	    }
 
 	  int upper = status&0xF0;
 	  int lower = status&0x0F;
@@ -290,8 +365,6 @@ main (int argc, char* argv[])
   int option_index = 0;
 
   while((optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index)) != -1){
-    //  int option_index = 0;                                                                                    
-    //  optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index);                                
     switch (optParse)
       {
       case 's':
