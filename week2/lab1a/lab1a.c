@@ -61,6 +61,8 @@ void signal_callback_handler(int signum){
 
   fprintf(stderr, "in signal handler: %d", pid);
 
+  kill(pid, SIGINT);
+
   w = waitpid(pid, &status, 0);
 
   int upper = status&0xF0;
@@ -165,6 +167,7 @@ int pipeSetup(void)
 		  int lower = status&0x0F;
 
 		  fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+
 	      
 		  exit(0);
 	
@@ -172,6 +175,15 @@ int pipeSetup(void)
 	      if (*buffer == 0x03) //control C
 		{
                   kill(pid, SIGINT);
+
+		  waitpid(pid, &status, 0);
+
+		  int upper = status&0xF0;
+		  int lower = status&0x0F;
+
+		  fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+
+
                   exit(0);
 		}
               if (buffer[i] == '\r' || buffer[i] == '\n' )
@@ -285,8 +297,6 @@ main (int argc, char* argv[])
     default:
       break;
     }
-
-
 
   if (shellFlag)
     {
