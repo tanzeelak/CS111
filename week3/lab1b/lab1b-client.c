@@ -6,6 +6,55 @@
 
 #include <string.h>
 
+// void bzero(void *s, size_t n);
+#define bzero(s, n) memset((s), 0, (n))
+
+// void bcopy(const void *s1, void *s2, size_t n);
+#define bcopy(s1, s2, n) memmove((s2), (s1), (n))
+
+
+/*
+
+int inputOutput(void)
+{
+  char buffer[2048];
+  int rfd;
+  while (1)
+    {
+      if ((rfd = read (STDIN_FILENO, buffer, 1)) ==  -1)
+        {
+          sysFailed("read", 2);
+        }
+      if (rfd > 0) {
+        if (*buffer == '\004')
+          {
+            reset_input_mode();
+            break;
+          }
+        else if (*buffer == '\n' || *buffer == '\r')
+          {
+            char smol[2] = {'\r', '\n'};
+            if (write(1, &smol, 2) == -1)
+              {
+                sysFailed("write", 1);
+              }
+          }
+        else
+          {
+            if(write(1, buffer, 1) == -1)
+              {
+                sysFailed("write", 1);
+              }
+          }
+      }
+
+    }
+
+}
+
+*/
+
+
 int main(int argc, char *argv[]) {
   int sockfd, portno, n;
   struct sockaddr_in serv_addr;
@@ -37,7 +86,7 @@ int main(int argc, char *argv[]) {
    
   bzero((char *) &serv_addr, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
-  bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+  bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);  
   serv_addr.sin_port = htons(portno);
    
   /* Now connect to the server */
@@ -49,6 +98,8 @@ int main(int argc, char *argv[]) {
   /* Now ask for a message from the user, this message
    * will be read by server
    */
+
+  while(1){
   
   printf("Please enter the message: ");
   bzero(buffer,256);
@@ -72,5 +123,40 @@ int main(int argc, char *argv[]) {
   }
   
   printf("%s\n",buffer);
+
+  }
+  /*
+    int rfd;
+    while (1)
+      {
+	if ((rfd = read (STDIN_FILENO, buffer, 1)) ==  -1)
+	  {
+	    sysFailed("read", 2);
+	  }
+	if (rfd > 0) {
+	  if (*buffer == '\004')
+	    {
+	      reset_input_mode();
+	      break;
+	    }
+	  else if (*buffer == '\n' || *buffer == '\r')
+	    {
+	      char smol[2] = {'\r', '\n'};
+	      if (write(1, &smol, 2) == -1)
+		{
+		  sysFailed("write", 1);
+		}
+	    }
+	  else
+	    {
+	      if(write(1, buffer, 1) == -1)
+		{
+		  sysFailed("write", 1);
+		}
+	    }
+	}
+
+      }
+  */
   return 0;
 }

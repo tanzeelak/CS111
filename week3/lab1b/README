@@ -7,14 +7,6 @@ lab1a.c: Compiles to accept the command line argument --shell. Without --shell, 
 Makefile: Includes name, email, and ID. The three commands are all (compiles the program), clean (remove executable and other unnecessary files), dist (builds tar file).
 
 Sources:
-- "Setting Terminal Modes Properly", gnu.org, https://www.gnu.org/software/libc/manual/html_node/Setting-Modes.html#Setting-Modes
-- "man poll", pubs.opengropu.org, http://pubs.opengroup.org/onlinepubs/009695399/functions/poll.html
-- "Noncanonical Mode Example", gnu.org, https://www.gnu.org/software/libc/manual/html_node/Noncanon-Example.html#Noncanon-Example
-- "Creating a Pipe", gnu.org, https://www.gnu.org/software/libc/manual/html_node/Creating-a-Pipe.html
-- "Executing a file", gnu.org, https://www.gnu.org/software/libc/manual/html_node/Executing-a-File.html
-- "YoLinux Tutorial: Fork, Exec and Process control", yolinux.org, http://www.yolinux.com/TUTORIALS/ForkExecProcesses.html
-- "Man Poll", pubs.opengroup.org, http://pubs.opengroup.org/onlinepubs/009695399/functions/poll.html
-- "poll()", beej.us, http://beej.us/guide/bgnet/output/html/multipage/pollman.html
-- "Program received signal SIGPIPE, Broken pipe.?", Hatem Mashaqi, http://stackoverflow.com/questions/18935446/program-received-signal-sigpipe-broken-pipe
-- "waitpid() - Unix, Linux System Call", tutorialspoint.com, http://www.tutorialspoint.com/unix_system_calls/waitpid.htm
-- TA discussion slides from 1A and 1B
+https://www.tutorialspoint.com/unix_sockets/socket_client_example.htm
+https://www.tutorialspoint.com/unix_sockets/socket_server_example.htm
+http://stackoverflow.com/questions/18330673/bzero-bcopy-versus-memset-memcpy
