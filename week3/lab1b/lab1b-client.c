@@ -87,12 +87,35 @@ int main(int argc, char *argv[]) {
 
   set_input_mode();
 
-  if (argc < 3) {
-    fprintf(stderr,"usage %s hostname port\n", argv[0]);
-    exit(0);
+  int optParse = 0;
+  int portFlag = 0;
+  char* portopt = NULL;
+
+  static struct option long_options[] = {
+    {"port", required_argument, 0, 'p'},
+    {0,0,0,0}
+  };
+
+  int option_index = 0;
+  while((optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index)) != -1){
+    switch (optParse)
+      {
+      case 'p':
+	portFlag = 1;
+	portopt = optarg;
+	break;
+      case '?':
+	fprintf(stderr, "--shell argument to pass input/output between the terminal and a shell:");
+	exit(1);
+      default:
+	break;
+      }
   }
 
-  portno = atoi(argv[2]);
+
+
+
+  portno = atoi(portopt);
 
   /* Create a socket point */
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -102,7 +125,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  server = gethostbyname(argv[1]);
+  server = gethostbyname("localhost");
 
   if (server == NULL) {
     fprintf(stderr,"ERROR, no such host\n");
