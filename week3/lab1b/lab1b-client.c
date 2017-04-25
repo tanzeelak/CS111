@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
 	logopt = optarg;
 	break;
       default:
-	fprintf(stderr, "--shell argument to pass input/output between the terminal and a shell:");
+	fprintf(stderr, "Proper usage of options: --port=portnum, --encrypt=filename, --log=filename");
 	exit(1);
       }
   }

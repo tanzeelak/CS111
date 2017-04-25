@@ -153,7 +153,7 @@ int main( int argc, char *argv[] ) {
 	  encopt = optarg;
 	  break;
 	default:
-	  fprintf(stderr, "--shell argument to pass input/output between the terminal and a shell:");
+	  fprintf(stderr, "Proper usage of options: --port=portnum, --encrypt=filename\n");
 	  exit(1);
 	}
     }
@@ -218,10 +218,8 @@ int main( int argc, char *argv[] ) {
             exit(1);
         }
 
-        if ((pid = fork()) == -1)
-        {
-            sysFailed("fork", 1);
-        }
+	signal(SIGPIPE, signal_callback_handler);
+	if ((pid = fork()) == -1) sysFailed("fork", 1);
 
         if (pid > 0)//parent
         {
