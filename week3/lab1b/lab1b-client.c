@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
 
     if (fds[0].revents & POLLIN) {
-      printf("Please enter the message: ");
+      //      printf("Please enter the message: ");
       bzero(buffer,256);
       fgets(buffer,255,stdin);
    
@@ -89,14 +89,17 @@ int main(int argc, char *argv[]) {
       }
    
     /* Now read server response */
+
+    }
+    else if (fds[1].revents & POLLIN) {
       bzero(buffer,256);
       n = read(sockfd, buffer, 255);
-   
+
       if (n < 0) {
-	perror("ERROR reading from socket");
-	exit(1);
+        perror("ERROR reading from socket");
+        exit(1);
       }
-  
+
       printf("%s\n",buffer);
     }
   }
