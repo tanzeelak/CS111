@@ -181,14 +181,9 @@ int main(int argc, char *argv[]) {
 
   while(1) {
     int value = poll(fds, 2, 0);
-
-
-
     if (fds[0].revents & POLLIN) {
-      //      printf("Please enter the message: ");
-    //   bzero(buffer,2048);
       memset(buffer, 0, 2048);
-      //      fgets(buffer,255,stdin);
+
       int rfd;
       if ((rfd = read (STDIN_FILENO, buffer, 1)) ==  -1)
 	sysFailed("read", 2);
@@ -251,25 +246,18 @@ int main(int argc, char *argv[]) {
 	return 1;
       }
 
-
-     
-	mcrypt_generic (td, &buffer, rfd);
+      mcrypt_generic (td, &buffer, rfd);
 
 	/* Comment above and uncomment this to decrypt */
 	/*    mdecrypt_generic (td, &block_buffer, 1);  */
-
-
      
       mcrypt_generic_deinit(td);
-
       mcrypt_module_close(td);
-
-
-
 
       /* Send message to the server */
       n = write(sockfd, buffer, strlen(buffer));
-      write(logfd, buffer, n);
+      if (logfd == 1)
+	write(logfd, buffer, n);
       if (n < 0) {
 	perror("ERROR writing to socket");
 	exit(1);
@@ -294,7 +282,8 @@ int main(int argc, char *argv[]) {
       }
 
       write(STDOUT_FILENO, buffer, n);
-      write(logfd, buffer, n);
+      if (logfd == 1)
+	write(logfd, buffer, n);
 
     }
   }

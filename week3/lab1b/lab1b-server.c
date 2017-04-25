@@ -1,3 +1,4 @@
+#define _POSIX_SOURCE
 #include <termios.h>
 #include <getopt.h>
 #include <unistd.h>
@@ -14,6 +15,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <mcrypt.h>
 
 int to_child_pipe[2];
 int from_child_pipe[2];
@@ -64,10 +66,13 @@ int main( int argc, char *argv[] ) {
 
     int optParse = 0;
     int portFlag = 0;
+    int encFlag = 0;
     char* portopt = NULL;
+    char* encopt = NULL;
 
     static struct option long_options[] = {
       {"port", required_argument, 0, 'p'},
+      {"encrypt", required_argument, 0, 'e'},
       {0,0,0,0}
     };
 
@@ -79,11 +84,13 @@ int main( int argc, char *argv[] ) {
 	  portFlag = 1;
 	  portopt = optarg;
 	  break;
-	case '?':
+	case 'e':
+	  encFlag = 1;
+	  encopt = optarg;
+	  break;
+	default:
 	  fprintf(stderr, "--shell argument to pass input/output between the terminal and a shell:");
 	  exit(1);
-	default:
-	  break;
 	}
     }
 
@@ -177,6 +184,62 @@ int main( int argc, char *argv[] ) {
                     {
                         sysFailed("Read", 1);
                     }
+
+
+		    //encryption                                                                                           
+
+		    MCRYPT td;
+
+		    char *key;
+		    char password[20];
+		    //      char block_buffer;                                                                             
+		    char *IV;
+		    int keysize=19; /* 128 bits */
+
+		    key=calloc(1, keysize);
+		    strcpy(password, "A_large_key");
+
+		    /* Generate the key using the password */
+		    /*  mhash_keygen( KEYGEN_MCRYPT, MHASH_MD5, key, keysize, NULL, 0, password, strlen(password));        
+		     */
+		    memmove( key, password, strlen(password));
+
+		    td = mcrypt_module_open("twofish", NULL, "cfb", NULL);
+		    if (td==MCRYPT_FAILED) {
+		      return 1;
+		    }
+		    IV = malloc(mcrypt_enc_get_iv_size(td));
+
+		    /* Put random data in IV. Note these are not real random data,                                         
+		     * consider using /dev/random or /dev/urandom.                                                         
+		     */
+
+		    /*  srand(time(0)); */
+		    for (int i=0; i< mcrypt_enc_get_iv_size( td); i++) {
+		      IV[i]=rand();
+		    }
+
+		    int j=mcrypt_generic_init( td, key, keysize, IV);
+		    if (j<0) {
+		      mcrypt_perror(j);
+		      return 1;
+		    }
+
+		    //		    mcrypt_generic (td, &buffer, rfd);
+
+		    /* Comment above and uncomment this to decrypt */
+		    mdecrypt_generic (td, &buffer, count); 
+
+		    mcrypt_generic_deinit(td);
+		    mcrypt_module_close(td);
+
+
+
+
+
+
+
+
 
                     int i;
                     for (i = 0; i < count; i++)
