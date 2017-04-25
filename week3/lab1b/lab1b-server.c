@@ -9,13 +9,10 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <signal.h>
-
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <netdb.h>
 #include <netinet/in.h>
-
 #include <string.h>
 
 int to_child_pipe[2];
@@ -74,8 +71,8 @@ int main( int argc, char *argv[] ) {
     }
 
     /* Initialize socket structure */
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    portno = 1313;
+    memset((char *) &serv_addr, 0, sizeof(serv_addr));
+    portno = 1314;
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -105,7 +102,8 @@ int main( int argc, char *argv[] ) {
 
     while(1) {
         /* If connection is established then start communicating */
-        bzero(buffer,2048);
+
+        memset(buffer, 0, 2048);
         //  n = read( newsockfd,buffer,255 );
         if (pipe(to_child_pipe) == -1)
         {

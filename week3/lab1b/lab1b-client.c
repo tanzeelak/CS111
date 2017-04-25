@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <signal.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -110,9 +109,11 @@ int main(int argc, char *argv[]) {
     exit(0);
   }
 
-  bzero((char *) &serv_addr, sizeof(serv_addr));
+
+  memset((char *) &serv_addr, 0, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
-  bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+  //bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+  memmove((char *) &serv_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
   serv_addr.sin_port = htons(portno);
 
   /* Now connect to the server */
@@ -138,7 +139,8 @@ int main(int argc, char *argv[]) {
 
     if (fds[0].revents & POLLIN) {
       //      printf("Please enter the message: ");
-      bzero(buffer,2048);
+    //   bzero(buffer,2048);
+      memset(buffer, 0, 2048);
       //      fgets(buffer,255,stdin);
       int rfd;
       if ((rfd = read (STDIN_FILENO, buffer, 1)) ==  -1)
@@ -178,8 +180,14 @@ int main(int argc, char *argv[]) {
 
     }
     else if (fds[1].revents & POLLIN) {
-      bzero(buffer,2048);
+    //   bzero(buffer,2048);
+      memset(buffer, 0, 2048);
       n = read(sockfd, buffer, 2047);
+      if (n == 0)
+      {
+          reset_input_mode();
+          exit(0);
+      }
 
       if (n < 0) {
         perror("ERROR reading from socket");

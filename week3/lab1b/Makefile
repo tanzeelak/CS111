@@ -8,7 +8,6 @@ CFLAGS = -g
 all:
 	gcc lab1b-client.c -std=c99 -o lab1b-client
 	gcc lab1b-server.c -std=c99 -o lab1b-server
-	gcc server.c -std=c99 -o server
 
 
 clean:
