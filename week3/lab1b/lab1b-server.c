@@ -33,6 +33,31 @@ void sysFailed(char* sysCall, int exitNum)
     exit(exitNum);
 }
 
+void signal_callback_handler(int signum){
+    //WAIT PID CASE 2
+
+    //  fprintf(stderr, "in signal handler: %d", pid);
+
+    if (kill(pid, SIGINT) == -1)
+    {
+        sysFailed("kill", 1);
+    }
+
+    w = waitpid(pid, &status, 0);
+    if (w == -1)
+    {
+        fprintf(stderr, "Waitpid failed: %s\n", strerror(errno));
+        exit(1);
+    }
+
+    int upper = status&0xF0;
+    int lower = status&0x0F;
+
+    fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+
+    printf("Caught signal SIGPIPE %d\n",signum);
+    exit(1);
+}
 
 int main( int argc, char *argv[] ) {
     int sockfd, portno, clilen;
@@ -100,7 +125,7 @@ int main( int argc, char *argv[] ) {
 
         if (pid > 0)//parent
         {
-
+            signal(SIGPIPE, signal_callback_handler);
             if (close(to_child_pipe[0]) == -1)
             {
                 sysFailed("close", 1);
@@ -130,55 +155,53 @@ int main( int argc, char *argv[] ) {
                     int i;
                     for (i = 0; i < count; i++)
                     {
-                        // if (*buffer == '\004') //control D
-                        // {
-                        //     //WAIT PID CASE 1
-                        //
-                        //
-                        //     if(close(to_child_pipe[1]) == -1)
-                        //     {
-                        //         sysFailed("Close", 1);
-                        //     }
-                        //
-                        //     if (read(from_child_pipe[0], buffer, 2048) == -1)
-                        //     {
-                        //         sysFailed("Read", 1);
-                        //     }
-                        //     w = waitpid(pid, &status, 0);
-                        //     if (w == -1)
-                        //     {
-                        //         fprintf(stderr, "Waitpid failed: %s\n", strerror(errno));
-                        //         exit(1);
-                        //     }
-                        //
-                        //     int upper = status&0xF0;
-                        //     int lower = status&0x0F;
-                        //
-                        //     fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
-                        //     exit(0);
-                        //
-                        // }
-                        // if (*buffer == 0x03) //control C
-                        // {
-                        //     if(kill(pid, SIGINT) == -1)
-                        //     {
-                        //         sysFailed("Kill", 1);
-                        //     }
-                        //
-                        //     waitpid(pid, &status, 0);
-                        //     if (w == -1)
-                        //     {
-                        //         fprintf(stderr, "waitpid failed: %s\n", strerror(errno));
-                        //         exit(1);
-                        //     }
-                        //
-                        //     int upper = status&0xF0;
-                        //     int lower = status&0x0F;
-                        //
-                        //     fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
-                        //
-                        //     exit(0);
-                        // }
+                        if (*buffer == '\004') //control D
+                        {
+                            //WAIT PID CASE 1
+                            if(close(to_child_pipe[1]) == -1)
+                            {
+                                sysFailed("Close", 1);
+                            }
+
+                            if (read(from_child_pipe[0], buffer, 2048) == -1)
+                            {
+                                sysFailed("Read", 1);
+                            }
+                            w = waitpid(pid, &status, 0);
+                            if (w == -1)
+                            {
+                                fprintf(stderr, "Waitpid failed: %s\n", strerror(errno));
+                                exit(1);
+                            }
+
+                            int upper = status&0xF0;
+                            int lower = status&0x0F;
+
+                            fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+                            exit(0);
+
+                        }
+                        if (*buffer == 0x03) //control C
+                        {
+                            if(kill(pid, SIGINT) == -1)
+                            {
+                                sysFailed("Kill", 1);
+                            }
+
+                            waitpid(pid, &status, 0);
+                            if (w == -1)
+                            {
+                                fprintf(stderr, "waitpid failed: %s\n", strerror(errno));
+                                exit(1);
+                            }
+
+                            int upper = status&0xF0;
+                            int lower = status&0x0F;
+
+                            fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+
+                            exit(0);
+                        }
                         if (buffer[i] == '\r' || buffer[i] == '\n' )
                         {
                             buffer[i] = '\n';
