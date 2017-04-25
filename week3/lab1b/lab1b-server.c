@@ -120,67 +120,116 @@ int main( int argc, char *argv[] ) {
                 int value = poll(fds, 2, 0);
                 int count = 0;
 
-                if(fds[0].revents & POLLIN)
-                {
-                    ssize_t lt = read(newsockfd, &buffer, 2048);
-                    if (lt < 0) {
-                        perror("ERROR reading from socket");
-                        exit(1);
-                    }
-                    //fprintf(stderr,"%d\n", lt);//delete later
-                    //char buf[MAX_SIZE];
-                    for(ssize_t i = 0; i<lt;i++)
+                if (fds[0].revents & POLLIN) {
+
+                    if ((count = read(newsockfd, buffer, 2048)) == -1)
                     {
+                        sysFailed("Read", 1);
+                    }
 
-                        if(buffer[i]=='\003')
+                    int i;
+                    for (i = 0; i < count; i++)
+                    {
+                        // if (*buffer == '\004') //control D
+                        // {
+                        //     //WAIT PID CASE 1
+                        //
+                        //
+                        //     if(close(to_child_pipe[1]) == -1)
+                        //     {
+                        //         sysFailed("Close", 1);
+                        //     }
+                        //
+                        //     if (read(from_child_pipe[0], buffer, 2048) == -1)
+                        //     {
+                        //         sysFailed("Read", 1);
+                        //     }
+                        //     w = waitpid(pid, &status, 0);
+                        //     if (w == -1)
+                        //     {
+                        //         fprintf(stderr, "Waitpid failed: %s\n", strerror(errno));
+                        //         exit(1);
+                        //     }
+                        //
+                        //     int upper = status&0xF0;
+                        //     int lower = status&0x0F;
+                        //
+                        //     fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+                        //     exit(0);
+                        //
+                        // }
+                        // if (*buffer == 0x03) //control C
+                        // {
+                        //     if(kill(pid, SIGINT) == -1)
+                        //     {
+                        //         sysFailed("Kill", 1);
+                        //     }
+                        //
+                        //     waitpid(pid, &status, 0);
+                        //     if (w == -1)
+                        //     {
+                        //         fprintf(stderr, "waitpid failed: %s\n", strerror(errno));
+                        //         exit(1);
+                        //     }
+                        //
+                        //     int upper = status&0xF0;
+                        //     int lower = status&0x0F;
+                        //
+                        //     fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+                        //
+                        //     exit(0);
+                        // }
+                        if (buffer[i] == '\r' || buffer[i] == '\n' )
                         {
-                            //kill(cd, SIGINT);
-                        }
-
-                        if(buffer[i] =='\n' || buffer[i] == '\r')
-                        {
-                            char lf = '\n';
-                            char cr = '\r';
                             buffer[i] = '\n';
-                            write(1, &cr, 1);
-                            write(1, &lf, 1);
+                            char temp[2] = {'\r', '\n'};
+                            if (write(1, temp, 2) == -1)
+                            {
+                                sysFailed("write", 1);
+                            }
                         }
-                        else
-                        {
-                            //write(1, &buffer[i], 1);
+                        else {
+                            if (write(1, &buffer[i], 1) == -1)
+                            {
+                                sysFailed("write", 1);
+                            }
                         }
-
                     }
-                    write(to_child_pipe[1], &buffer, lt);
-
-                }
-
-
-                else if(fds[1].revents & POLLIN)
-                {
-
-
-                    //fprintf(stderr, "!!!\n");
-                    ssize_t lt2 = read(from_child_pipe[0], buffer, 2048);
-                    //	fprintf(stderr, "%d", len);
-                    for(ssize_t i=0; i<lt2; i++)
+                    //forward to shell
+                    if (write(to_child_pipe[1], buffer, count) == -1)
                     {
-                        if (buffer[i] == '\n')
-                        {
-                            char n = '\n';
-                            char r= '\r';
-                            write(newsockfd,&r, 1);
-                            write(newsockfd, &n, 1);
-                            continue;
-                        }
-                        write(newsockfd, &buffer[i], 1);
+                        sysFailed("write", 1);
                     }
-
-                    //write(newsockfd, &buffer, MAX_SIZE);
-
-
                 }
-}
+
+                if (fds[1].revents & POLLIN) {
+
+                    if ((count = read(from_child_pipe[0], buffer, 2048)) == -1)
+                    {
+                        sysFailed("read", 1);
+                    }
+                    int j;
+                    for (j = 0; j < count; j++)
+                    {
+                        if (buffer[j] == '\n')
+                        {
+                            char temp[2] = {'\r', '\n'};
+
+                            if (write(1, temp, 2) == -1)
+                            {
+                                sysFailed("write", 1);
+                            }
+                        }
+                        else {
+
+                            if (write(1, &buffer[j], 1) == -1)
+                            {
+                                sysFailed("write", 1);
+                            }
+                        }
+                    }
+                }
+            }
 }
 else if (pid == 0) {
 
