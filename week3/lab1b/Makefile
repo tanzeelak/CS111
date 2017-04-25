@@ -6,8 +6,8 @@ CC=gcc
 CFLAGS = -g
 
 all:
-	gcc lab1b-client.c -o lab1b-client
-	gcc lab1b-server.c -o lab1b-server
+	gcc lab1b-client.c -std=c99 -o lab1b-client
+	gcc lab1b-server.c -std=c99 -o lab1b-server
 
 
 clean:

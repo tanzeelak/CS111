@@ -1,0 +1,66 @@
+diff --git a/week3/lab1b/lab1b-server.c b/week3/lab1b/lab1b-server.c
+index 077e1f8..e23258b 100644
+--- a/week3/lab1b/lab1b-server.c
++++ b/week3/lab1b/lab1b-server.c
+@@ -25,6 +25,7 @@ pid_t w;
+ int status;
+ int newsockfd;
+ char buffer[2048];
++struct pollfd fds[2];
+ 
+ void sysFailed(char* sysCall, int exitNum)
+ {
+@@ -75,9 +76,23 @@ int main( int argc, char *argv[] ) {
+     perror("ERROR on accept");
+     exit(1);
+   }
++
++
++  fds[0].fd = newsockfd;
++  fds[1].fd = from_child_pipe[0];
++  fds[0].events = POLLIN | POLLHUP | POLLERR;
++  fds[1].events = POLLIN | POLLHUP | POLLERR;
++
++
++
+   while(1) {   
++    
++
++
++
++
+   /* If connection is established then start communicating */
+-  bzero(buffer,2048);
++    bzero(buffer,2048);
+   //  n = read( newsockfd,buffer,255 );
+   
+ 
+@@ -111,10 +126,11 @@ int main( int argc, char *argv[] ) {
+ 	}
+ 
+       for (;;) {
++	int value = poll(fds, 2, 0);
+ 	int count = 0;
+ 
+ 	//reading from keyboard
+-
++	if (fds[0].revents & POLLIN) {
+ 	  if ((count = read(newsockfd, buffer, 2048)) == -1)
+ 	    {
+ 	      sysFailed("Read", 1);
+@@ -136,7 +152,6 @@ int main( int argc, char *argv[] ) {
+ 	      sysFailed("write", 1);
+ 	    }
+ 
+-
+ 	
+ 	//reading from shell
+ 
+@@ -158,6 +173,7 @@ int main( int argc, char *argv[] ) {
+ 	    }
+ 
+ 	  write(newsockfd, buffer, 2048);
++	}
+       }
+     }
+   else if (pid == 0) {

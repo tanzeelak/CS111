@@ -50,7 +50,7 @@ int main( int argc, char *argv[] ) {
    
   /* Initialize socket structure */
   bzero((char *) &serv_addr, sizeof(serv_addr));
-  portno = 5001;
+  portno = 1313;
    
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -120,6 +120,7 @@ int main( int argc, char *argv[] ) {
 
 	  //reading from keyboard
 	  if (fds[0].revents & POLLIN) {
+
 	    if ((count = read(newsockfd, buffer, 2048)) == -1)
 	      {
 		sysFailed("Read", 1);
@@ -128,22 +129,47 @@ int main( int argc, char *argv[] ) {
 	    int i;
 	    for (i = 0; i < count; i++)
 	      {
-
-		if (write(1, &buffer[i], 1) == -1)
+		if (buffer[i] == '\r' || buffer[i] == '\n' )
 		  {
-		    sysFailed("write", 1);
+		    buffer[i] = '\n';
+		    char temp[2] = {'\r', '\n'};
+		    if (write(1, temp, 2) == -1)
+		      {
+			sysFailed("write", 1);
+		      }
 		  }
-
+		else {
+		  if (write(1, &buffer[i], 1) == -1)
+		    {
+		      sysFailed("write", 1);
+		    }
+		}
 	      }
 	    //forward to shell
 	    if (write(to_child_pipe[1], buffer, count) == -1)
 	      {
 		sysFailed("write", 1);
+		}
+	    /*
+	    	    if ((count = read(newsockfd, buffer, 2048)) == -1)
+	      {
+		sysFailed("Read", 1);
 	      }
+	    int i;
+	    for (i = 0; i < count; i++)
+	      {
+		if (write(1, &buffer[i], 1) == -1)
+		  {
+		    sysFailed("write", 1);
+		  }
+	      }
+	    //forward to shell
+	    if (write(to_child_pipe[1], buffer, count) == -1)
+	      {
+		sysFailed("write", 1);
+		}*/
 	  }
-	    
 	    //reading from shell
-
 	  if (fds[1].revents & POLLIN) {
 	    if ((count = read(from_child_pipe[0], buffer, 2048)) == -1)
 	      {
@@ -152,15 +178,11 @@ int main( int argc, char *argv[] ) {
 	    int j;
 	    for (j = 0; j < count; j++)
 	      {
-
-		
 		if (write(1, &buffer[j], 1) == -1)
 		  {
 		    sysFailed("write", 1);
 		  }
-
 	      }
-
 	    write(newsockfd, buffer, 2048);
 	  }
 	}
