@@ -21,6 +21,7 @@
 
 struct termios saved_attributes;
 struct pollfd fds[2];
+char buffer[2048];
 int logfd;
 
 
@@ -78,14 +79,110 @@ set_input_mode (void)
     }
 }
 
+int encrypt(ssize_t size)
+{
+  MCRYPT td;
+  int i;
+  char *key;
+  char password[20];
+  char *IV;
+  int keysize=19; /* 128 bits */
 
+  key=calloc(1, keysize);
+  strcpy(password, "A_large_key");
+
+  /* Generate the key using the password */
+  /*  mhash_keygen( KEYGEN_MCRYPT, MHASH_MD5, key, keysize, NULL, 0, password, strlen(password));
+   */
+  memmove( key, password, strlen(password));
+
+  td = mcrypt_module_open("twofish", NULL, "cfb", NULL);
+  if (td==MCRYPT_FAILED) {
+    return 1;
+  }
+  IV = malloc(mcrypt_enc_get_iv_size(td));
+
+  /* Put random data in IV. Note these are not real random data,
+   * consider using /dev/random or /dev/urandom.
+   */
+
+  /*  srand(time(0)); */
+  for (i=0; i< mcrypt_enc_get_iv_size( td); i++) {
+    IV[i]='a';
+  }
+
+  i=mcrypt_generic_init( td, key, keysize, IV);
+  if (i<0) {
+    mcrypt_perror(i);
+    return 1;
+  }
+
+  /* Encryption in CFB is performed in bytes */
+  mcrypt_generic (td, &buffer, size);
+
+  /* Comment above and uncomment this to decrypt */
+  /*    mdecrypt_generic (td, &block_buffer, 1);  */
+
+  mcrypt_generic_deinit(td);
+  mcrypt_module_close(td);
+
+  return 0;
+}
+
+int decrypt(ssize_t size)
+{
+  MCRYPT td;
+  int i;
+  char *key;
+  char password[20];
+  char *IV;
+  int keysize=19; /* 128 bits */
+
+  key=calloc(1, keysize);
+  strcpy(password, "A_large_key");
+
+  /* Generate the key using the password */
+  /*  mhash_keygen( KEYGEN_MCRYPT, MHASH_MD5, key, keysize, NULL, 0, password, strlen(password));
+   */
+  memmove( key, password, strlen(password));
+
+  td = mcrypt_module_open("twofish", NULL, "cfb", NULL);
+  if (td==MCRYPT_FAILED) {
+    return 1;
+  }
+  IV = malloc(mcrypt_enc_get_iv_size(td));
+
+  /* Put random data in IV. Note these are not real random data,
+   * consider using /dev/random or /dev/urandom.
+   */
+
+  /*  srand(time(0)); */
+  for (i=0; i< mcrypt_enc_get_iv_size( td); i++) {
+    IV[i]='a';
+  }
+
+  i=mcrypt_generic_init( td, key, keysize, IV);
+  if (i<0) {
+    mcrypt_perror(i);
+    return 1;
+  }
+
+  /* Encryption in CFB is performed in bytes */
+  // mcrypt_generic (td, &buffer, size);
+
+  /* Comment above and uncomment this to decrypt */
+  mdecrypt_generic (td, &buffer, size);
+
+  mcrypt_generic_deinit(td);
+  mcrypt_module_close(td);
+
+  return 0;
+}
 
 int main(int argc, char *argv[]) {
   int sockfd, portno, n;
   struct sockaddr_in serv_addr;
   struct hostent *server;
-
-  char buffer[2048];
 
   set_input_mode();
 
@@ -159,7 +256,7 @@ int main(int argc, char *argv[]) {
 
   memset((char *) &serv_addr, 0, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
-  //bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+
   memmove((char *) &serv_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
   serv_addr.sin_port = htons(portno);
 
