@@ -110,8 +110,6 @@ int encrypt(ssize_t size)
   /* Comment above and uncomment this to decrypt */
   /*    mdecrypt_generic (td, &block_buffer, 1);  */
 
-  mcrypt_generic_deinit(td);
-  mcrypt_module_close(td);
 
   return 0;
 }
@@ -124,10 +122,6 @@ int decrypt(ssize_t size)
 
   /* Comment above and uncomment this to decrypt */
   mdecrypt_generic (td, &buffer, size);
-
-  mcrypt_generic_deinit(td);
-  mcrypt_module_close(td);
-
   return 0;
 }
 
@@ -445,5 +439,13 @@ if (n < 0) {
     exit(1);
 }
 }
+
+    if (encFlag)
+      {
+	mcrypt_generic_deinit(td);
+	mcrypt_module_close(td);
+
+      }
+
 return 0;
 }
