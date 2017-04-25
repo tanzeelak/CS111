@@ -285,55 +285,8 @@ int main( int argc, char *argv[] ) {
                         sysFailed("Read", 1);
                     }
 
-
-		    //encryption                                                                                           
-
-		    MCRYPT td;
-
-		    char *key;
-		    char password[20];
-		    //      char block_buffer;                                                                             
-		    char *IV;
-		    int keysize=19; /* 128 bits */
-
-		    key=calloc(1, keysize);
-		    strcpy(password, "A_large_key");
-
-		    /* Generate the key using the password */
-		    /*  mhash_keygen( KEYGEN_MCRYPT, MHASH_MD5, key, keysize, NULL, 0, password, strlen(password));        
-		     */
-		    memmove( key, password, strlen(password));
-
-		    td = mcrypt_module_open("twofish", NULL, "cfb", NULL);
-		    if (td==MCRYPT_FAILED) {
-		      return 1;
-		    }
-		    IV = malloc(mcrypt_enc_get_iv_size(td));
-
-		    /* Put random data in IV. Note these are not real random data,                                         
-		     * consider using /dev/random or /dev/urandom.                                                         
-		     */
-
-		    /*  srand(time(0)); */
-		    for (int i=0; i< mcrypt_enc_get_iv_size( td); i++) {
-		      IV[i]=rand();
-		    }
-
-		    int j=mcrypt_generic_init( td, key, keysize, IV);
-		    if (j<0) {
-		      mcrypt_perror(j);
-		      return 1;
-		    }
-
-		    //		    mcrypt_generic (td, &buffer, rfd);
-
-		    /* Comment above and uncomment this to decrypt */
-		    mdecrypt_generic (td, &buffer, count); 
-
-		    mcrypt_generic_deinit(td);
-		    mcrypt_module_close(td);
-
-
+		    if (encFlag)
+		      decrypt(count);
 
 
 
@@ -424,21 +377,23 @@ int main( int argc, char *argv[] ) {
                     for (j = 0; j < count; j++)
                     {
                         if (buffer[j] == '\n')
-                        {
+			  {
                             char temp[2] = {'\r', '\n'};
+			    //encrypt(2);
 
                             if (write(newsockfd, temp, 2) == -1)
-                            {
+			      {
                                 sysFailed("write", 1);
-                            }
-                        }
-                        else {
-
-                            if (write(newsockfd, &buffer[j], 1) == -1)
+			      }
+			  }
+                        else 
+			  {
+			    //			  encrypt(count);
+			  if (write(newsockfd, &buffer[j], 1) == -1)
                             {
-                                sysFailed("write", 1);
+			      sysFailed("write", 1);
                             }
-                        }
+			  }
                     }
                 }
             }
