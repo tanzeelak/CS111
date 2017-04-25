@@ -62,6 +62,34 @@ int main( int argc, char *argv[] ) {
     struct sockaddr_in serv_addr, cli_addr;
     int  n;
 
+    int optParse = 0;
+    int portFlag = 0;
+    char* portopt = NULL;
+
+    static struct option long_options[] = {
+      {"port", required_argument, 0, 'p'},
+      {0,0,0,0}
+    };
+
+    int option_index = 0;
+    while((optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index)) != -1){
+      switch (optParse)
+	{
+	case 'p':
+	  portFlag = 1;
+	  portopt = optarg;
+	  break;
+	case '?':
+	  fprintf(stderr, "--shell argument to pass input/output between the terminal and a shell:");
+	  exit(1);
+	default:
+	  break;
+	}
+    }
+
+
+
+
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -72,7 +100,7 @@ int main( int argc, char *argv[] ) {
 
     /* Initialize socket structure */
     memset((char *) &serv_addr, 0, sizeof(serv_addr));
-    portno = 1314;
+    portno = atoi(portopt);
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;

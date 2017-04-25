@@ -1,0 +1,27 @@
+ya/bin/bash: line 1: ya: command not found
+ls#Makefile#
+#clear#
+#lab1a.c#
+Makefile
+Makefile~
+README
+client
+client.c
+client.c~
+haha.diff
+haha.txt
+lab0.c
+lab1a.c
+lab1b-client
+lab1b-client.c
+lab1b-client.c~
+lab1b-server
+lab1b-server.c
+lab1b.c~
+nah.txt
+server
+server.c
+server.c~
+yo.txt
+lis/bin/bash: line 3: $'lis\177': command not found
+pwd

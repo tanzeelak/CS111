@@ -21,6 +21,8 @@
 
 struct termios saved_attributes;
 struct pollfd fds[2];
+int logfd;
+
 
 void sysFailed(char* sysCall, int exitNum)
 {
@@ -89,10 +91,16 @@ int main(int argc, char *argv[]) {
 
   int optParse = 0;
   int portFlag = 0;
+  int encFlag = 0;
+  int logFlag = 0;
   char* portopt = NULL;
+  char* encopt = NULL;
+  char* logopt = NULL;
 
   static struct option long_options[] = {
     {"port", required_argument, 0, 'p'},
+    {"encrypt", required_argument, 0, 'e'},
+    {"log", required_argument, 0, 'l'},
     {0,0,0,0}
   };
 
@@ -104,13 +112,29 @@ int main(int argc, char *argv[]) {
 	portFlag = 1;
 	portopt = optarg;
 	break;
-      case '?':
+      case 'e':
+	encFlag = 1;
+	encopt = optarg;
+	break;
+      case 'l':
+	logFlag = 1;
+	logopt = optarg;
+	break;
+      default:
 	fprintf(stderr, "--shell argument to pass input/output between the terminal and a shell:");
 	exit(1);
-      default:
-	break;
       }
   }
+
+  if (logFlag)
+    {
+      logfd = creat(logopt, 0666);
+      if (logfd < 0)
+	{
+	  fprintf(stderr, "Failed to open input file. %s\n", strerror(errno));
+	  exit(2);
+	}
+    }
 
 
 
@@ -193,7 +217,7 @@ int main(int argc, char *argv[]) {
 
       /* Send message to the server */
       n = write(sockfd, buffer, strlen(buffer));
-
+      write(logfd, buffer, n);
       if (n < 0) {
 	perror("ERROR writing to socket");
 	exit(1);
@@ -218,7 +242,8 @@ int main(int argc, char *argv[]) {
       }
 
       write(STDOUT_FILENO, buffer, n);
-    //   printf("%s\n",buffer);
+      write(logfd, buffer, n);
+
     }
   }
   return 0;
