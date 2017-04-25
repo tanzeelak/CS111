@@ -39,10 +39,7 @@ void signal_callback_handler(int signum){
 
     //  fprintf(stderr, "in signal handler: %d", pid);
 
-    if (kill(pid, SIGINT) == -1)
-    {
-        sysFailed("kill", 1);
-    }
+    if (kill(pid, SIGINT) == -1) sysFailed("kill", 1);
 
     w = waitpid(pid, &status, 0);
     if (w == -1)
@@ -229,15 +226,8 @@ int main( int argc, char *argv[] ) {
         if (pid > 0)//parent
         {
             signal(SIGPIPE, signal_callback_handler);
-            if (close(to_child_pipe[0]) == -1)
-            {
-                sysFailed("close", 1);
-            }
-
-            if (close(from_child_pipe[1]) == -1)
-            {
-                sysFailed("close", 1);
-            }
+            if (close(to_child_pipe[0]) == -1) sysFailed("close", 1);
+            if (close(from_child_pipe[1]) == -1) sysFailed("close", 1);
 
             fds[0].fd = newsockfd;
             fds[1].fd = from_child_pipe[0];
@@ -250,22 +240,8 @@ int main( int argc, char *argv[] ) {
 
                 if (fds[0].revents & POLLIN) {
 
-                    if ((count = read(newsockfd, buffer, 2048)) == -1)
-                    {
-                        sysFailed("Read", 1);
-                    }
-
-		    if (encFlag)
-		      {
-			//			encryptInit();
-			decrypt(count, buffer);
-		      }
-
-
-
-
-
-
+                    if ((count = read(newsockfd, buffer, 2048)) == -1) sysFailed("Read", 1);
+		    if (encFlag)decrypt(count, buffer);
 
                     int i;
                     for (i = 0; i < count; i++)
@@ -273,15 +249,9 @@ int main( int argc, char *argv[] ) {
                         if (*buffer == '\004') //control D
                         {
                             //WAIT PID CASE 1
-                            if(close(to_child_pipe[1]) == -1)
-                            {
-                                sysFailed("Close", 1);
-                            }
+                            if(close(to_child_pipe[1]) == -1) sysFailed("Close", 1);
+                            if (read(from_child_pipe[0], buffer, 2048) == -1) sysFailed("Read", 1);
 
-                            if (read(from_child_pipe[0], buffer, 2048) == -1)
-                            {
-                                sysFailed("Read", 1);
-                            }
                             w = waitpid(pid, &status, 0);
                             if (w == -1)
                             {
@@ -321,51 +291,33 @@ int main( int argc, char *argv[] ) {
                         {
                             buffer[i] = '\n';
                             char temp[2] = {'\r', '\n'};
-                            if (write(1, temp, 2) == -1)
-                            {
-                                sysFailed("write", 1);
-                            }
+                            if (write(1, temp, 2) == -1) sysFailed("write", 1);
                         }
                         else {
-                            if (write(1, &buffer[i], 1) == -1)
-                            {
-                                sysFailed("write", 1);
-                            }
+                            if (write(1, &buffer[i], 1) == -1) sysFailed("write", 1);
                         }
                     }
                     //forward to shell
-                    if (write(to_child_pipe[1], buffer, count) == -1)
-                    {
-                        sysFailed("write", 1);
-                    }
+                    if (write(to_child_pipe[1], buffer, count) == -1) sysFailed("write", 1);
                 }
 
                 if (fds[1].revents & POLLIN) {
 
-                    if ((count = read(from_child_pipe[0], buffer, 2048)) == -1)
-                    {
-                        sysFailed("read", 1);
-                    }
+                    if ((count = read(from_child_pipe[0], buffer, 2048)) == -1)sysFailed("read", 1);
                     int j;
                     for (j = 0; j < count; j++)
                     {
                         if (buffer[j] == '\n')
 			  {
                             char temp[2] = {'\r', '\n'};
-			    //encrypt(2);
+			    //			    encrypt(2, temp);
 
-                            if (write(newsockfd, temp, 2) == -1)
-			      {
-                                sysFailed("write", 1);
-			      }
+                            if (write(newsockfd, temp, 2) == -1)sysFailed("write", 1);
 			  }
                         else 
 			  {
-			    //			  encrypt(count);
-			  if (write(newsockfd, &buffer[j], 1) == -1)
-                            {
-			      sysFailed("write", 1);
-                            }
+			    //			    encrypt(1, &buffer[j]);
+			  if (write(newsockfd, &buffer[j], 1) == -1) sysFailed("write", 1);
 			  }
                     }
                 }
@@ -373,40 +325,20 @@ int main( int argc, char *argv[] ) {
 }
 else if (pid == 0) {
 
-    if (close(to_child_pipe[1]) == -1)
-    {
-        sysFailed("close", 1);
-    }
+    if (close(to_child_pipe[1]) == -1) sysFailed("close", 1);
 
-    if (close(from_child_pipe[0]) == -1)
-    {
-        sysFailed("close", 1);
-    }
+    if (close(from_child_pipe[0]) == -1)sysFailed("close", 1);
 
-    if (dup2(to_child_pipe[0], STDIN_FILENO) == -1)
-    {
-        sysFailed("dup2", 1);
-    }
 
-    if (dup2(from_child_pipe[1], STDOUT_FILENO) == -1)
-    {
-        sysFailed("dup2", 1);
-    }
+    if (dup2(to_child_pipe[0], STDIN_FILENO) == -1)sysFailed("dup2", 1);
 
-    if (dup2(from_child_pipe[1], 2) == -1)
-    {
-        sysFailed("dup2", 1);
-    }
+    if (dup2(from_child_pipe[1], STDOUT_FILENO) == -1)sysFailed("dup2", 1);
 
-    if (close(to_child_pipe[0]) == -1)
-    {
-        sysFailed("close", 1);
-    }
+    if (dup2(from_child_pipe[1], 2) == -1)sysFailed("dup2", 1);
 
-    if (close(from_child_pipe[1]) == -1)
-    {
-        sysFailed("close", 1);
-    }
+    if (close(to_child_pipe[0]) == -1)sysFailed("close", 1);
+
+    if (close(from_child_pipe[1]) == -1)sysFailed("close", 1);
     char *execvp_argv[2];
     char execvp_filename[] = "/bin/bash";
     execvp_argv[0] = execvp_filename;

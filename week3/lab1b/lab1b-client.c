@@ -35,10 +35,7 @@ void sysFailed(char* sysCall, int exitNum)
 void
 reset_input_mode (void)
 {
-  if (tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes) == -1)
-    {
-      sysFailed("tcsetattr", 1);
-    }
+  if (tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes) == -1) sysFailed("tcsetattr", 1);
 }
 
 void
@@ -55,28 +52,16 @@ set_input_mode (void)
     }
 
   /* Save the terminal attributes so we can restore them later. */
-  if (tcgetattr (STDIN_FILENO, &saved_attributes) == -1)
-    {
-      sysFailed("tcgetattr", 1);
-    }
-  if(atexit (reset_input_mode) == -1)
-    {
-      sysFailed("atexit", 1);
-    }
+  if (tcgetattr (STDIN_FILENO, &saved_attributes) == -1)sysFailed("tcgetattr", 1);
+  if(atexit (reset_input_mode) == -1)sysFailed("atexit", 1);
 
   /* Set the funny terminal modes. */
-  if (tcgetattr (STDIN_FILENO, &tattr) == -1)
-    {
-      sysFailed("tcgetattr", 1);
-    }
+  if (tcgetattr (STDIN_FILENO, &tattr) == -1) sysFailed("tcgetattr", 1);
   tattr.c_iflag = ISTRIP;
   tattr.c_oflag = 0;
   tattr.c_lflag = 0;
 
-  if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr) == -1)
-    {
-      sysFailed("tcsetattr", 1);
-    }
+  if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr) == -1) sysFailed("tcsetattr", 1);
 }
 
 int encryptInit(void)
@@ -248,24 +233,17 @@ int main(int argc, char *argv[]) {
       memset(buffer, 0, 2048);
 
       int rfd;
-      if ((rfd = read (STDIN_FILENO, buffer, 1)) ==  -1)
-	sysFailed("read", 2);
+      if ((rfd = read (STDIN_FILENO, buffer, 1)) ==  -1) sysFailed("read", 2);
       for (int i = 0; i < rfd; i++)
 	{
 	  if (buffer[i] == '\n' || buffer[i] == '\r')
 	    {
 	      char smol[2] = {'\r', '\n'};
-	      if (write(1, &smol, 2) == -1)
-		{
-		  sysFailed("write ha", 1);
-		}
+	      if (write(1, &smol, 2) == -1) sysFailed("write ha", 1);
 	    }
 	  else
 	    {
-	      if(write(1, &buffer[i], 1) == -1)
-		{
-		  sysFailed("write haha", 1);
-		}
+	      if(write(1, &buffer[i], 1) == -1) sysFailed("write haha", 1);
 	    }
 	}
       
