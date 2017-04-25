@@ -195,7 +195,10 @@ int main(int argc, char *argv[]) {
 	  exit(2);
 	}
     }
-
+  if (encFlag)
+    {
+	  encryptInit();
+    }
 
 
 
@@ -268,7 +271,7 @@ int main(int argc, char *argv[]) {
       
       if (encFlag)
 	{
-	  encryptInit();
+
 	  encrypt(rfd, buffer);
 	}
       

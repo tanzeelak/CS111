@@ -161,7 +161,10 @@ int main( int argc, char *argv[] ) {
 	}
     }
 
-
+    if (encFlag)
+      {
+			encryptInit();
+      }
 
 
     /* First call to socket() function */
@@ -254,7 +257,7 @@ int main( int argc, char *argv[] ) {
 
 		    if (encFlag)
 		      {
-			encryptInit();
+			//			encryptInit();
 			decrypt(count, buffer);
 		      }
 
