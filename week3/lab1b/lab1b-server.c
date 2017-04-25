@@ -215,14 +215,14 @@ int main( int argc, char *argv[] ) {
                         {
                             char temp[2] = {'\r', '\n'};
 
-                            if (write(1, temp, 2) == -1)
+                            if (write(newsockfd, temp, 2) == -1)
                             {
                                 sysFailed("write", 1);
                             }
                         }
                         else {
 
-                            if (write(1, &buffer[j], 1) == -1)
+                            if (write(newsockfd, &buffer[j], 1) == -1)
                             {
                                 sysFailed("write", 1);
                             }

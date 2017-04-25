@@ -57,7 +57,7 @@ set_input_mode (void)
     {
       sysFailed("tcgetattr", 1);
     }
-  if(atexit (reset_input_mode) == -1) 
+  if(atexit (reset_input_mode) == -1)
     {
       sysFailed("atexit", 1);
     }
@@ -70,7 +70,7 @@ set_input_mode (void)
   tattr.c_iflag = ISTRIP;
   tattr.c_oflag = 0;
   tattr.c_lflag = 0;
-  
+
   if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr) == -1)
     {
       sysFailed("tcsetattr", 1);
@@ -83,44 +83,44 @@ int main(int argc, char *argv[]) {
   int sockfd, portno, n;
   struct sockaddr_in serv_addr;
   struct hostent *server;
-   
-  char buffer[256];
- 
+
+  char buffer[2048];
+
   set_input_mode();
-  
+
   if (argc < 3) {
     fprintf(stderr,"usage %s hostname port\n", argv[0]);
     exit(0);
   }
-  
+
   portno = atoi(argv[2]);
-   
+
   /* Create a socket point */
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-   
+
   if (sockfd < 0) {
     perror("ERROR opening socket");
     exit(1);
   }
-  
+
   server = gethostbyname(argv[1]);
-   
+
   if (server == NULL) {
     fprintf(stderr,"ERROR, no such host\n");
     exit(0);
   }
-   
+
   bzero((char *) &serv_addr, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
   bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
   serv_addr.sin_port = htons(portno);
-   
+
   /* Now connect to the server */
   if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
     perror("ERROR connecting");
     exit(1);
   }
-   
+
   /* Now ask for a message from the user, this message
    * will be read by server
    */
@@ -131,17 +131,17 @@ int main(int argc, char *argv[]) {
   fds[1].events = POLLIN | POLLHUP | POLLERR;
 
 
-  while(1) {  
+  while(1) {
     int value = poll(fds, 2, 0);
 
 
 
     if (fds[0].revents & POLLIN) {
       //      printf("Please enter the message: ");
-      bzero(buffer,256);
+      bzero(buffer,2048);
       //      fgets(buffer,255,stdin);
       int rfd;
-      if ((rfd = read (STDIN_FILENO, buffer, 1)) ==  -1)  
+      if ((rfd = read (STDIN_FILENO, buffer, 1)) ==  -1)
 	sysFailed("read", 2);
       for (int i = 0; i < rfd; i++)
 	{
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
 		{
 		  sysFailed("write ha", 1);
 		}
-	    }     
+	    }
 	  else
 	    {
 	      if(write(1, &buffer[i], 1) == -1)
@@ -161,32 +161,33 @@ int main(int argc, char *argv[]) {
 		}
 	    }
 	}
-      
 
 
 
-   
+
+
       /* Send message to the server */
       n = write(sockfd, buffer, strlen(buffer));
-   
+
       if (n < 0) {
 	perror("ERROR writing to socket");
 	exit(1);
       }
-   
+
     /* Now read server response */
 
     }
     else if (fds[1].revents & POLLIN) {
-      bzero(buffer,256);
-      n = read(sockfd, buffer, 255);
+      bzero(buffer,2048);
+      n = read(sockfd, buffer, 2047);
 
       if (n < 0) {
         perror("ERROR reading from socket");
         exit(1);
       }
 
-      printf("%s\n",buffer);
+      write(STDOUT_FILENO, buffer, n);
+    //   printf("%s\n",buffer);
     }
   }
   return 0;
