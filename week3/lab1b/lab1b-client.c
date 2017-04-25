@@ -1,3 +1,16 @@
+#include <termios.h>
+#include <getopt.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <string.h>
+#include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <signal.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -5,6 +18,7 @@
 #include <netinet/in.h>
 
 #include <string.h>
+struct pollfd fds[2];
 
 int main(int argc, char *argv[]) {
   int sockfd, portno, n;
@@ -50,29 +64,41 @@ int main(int argc, char *argv[]) {
    * will be read by server
    */
 
+  fds[0].fd = STDIN_FILENO;
+  fds[1].fd = sockfd;
+  fds[0].events = POLLIN | POLLHUP | POLLERR;
+  fds[1].events = POLLIN | POLLHUP | POLLERR;
+
+
   while(1) {  
-  printf("Please enter the message: ");
-  bzero(buffer,256);
-  fgets(buffer,255,stdin);
+    int value = poll(fds, 2, 0);
+
+
+
+    if (fds[0].revents & POLLIN) {
+      printf("Please enter the message: ");
+      bzero(buffer,256);
+      fgets(buffer,255,stdin);
    
-  /* Send message to the server */
-  n = write(sockfd, buffer, strlen(buffer));
+      /* Send message to the server */
+      n = write(sockfd, buffer, strlen(buffer));
    
-  if (n < 0) {
-    perror("ERROR writing to socket");
-    exit(1);
-  }
+      if (n < 0) {
+	perror("ERROR writing to socket");
+	exit(1);
+      }
    
-  /* Now read server response */
-  bzero(buffer,256);
-  n = read(sockfd, buffer, 255);
+    /* Now read server response */
+      bzero(buffer,256);
+      n = read(sockfd, buffer, 255);
    
-  if (n < 0) {
-    perror("ERROR reading from socket");
-    exit(1);
-  }
+      if (n < 0) {
+	perror("ERROR reading from socket");
+	exit(1);
+      }
   
-  printf("%s\n",buffer);
+      printf("%s\n",buffer);
+    }
   }
   return 0;
 }
