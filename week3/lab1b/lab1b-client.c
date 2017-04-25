@@ -119,12 +119,10 @@ int encryptInit(void)
 
 }
 
-int encrypt(ssize_t size)
+int encrypt(ssize_t size, char* buff)
 {
-
-
   /* Encryption in CFB is performed in bytes */
-  mcrypt_generic (td, &buffer, size);
+  mcrypt_generic (td, &buff, size);
 
   /* Comment above and uncomment this to decrypt */
   /*    mdecrypt_generic (td, &block_buffer, 1);  */
@@ -133,14 +131,14 @@ int encrypt(ssize_t size)
   return 0;
 }
 
-int decrypt(ssize_t size)
+int decrypt(ssize_t size, char* buff)
 {
 
   /* Encryption in CFB is performed in bytes */
   // mcrypt_generic (td, &buffer, size);
 
   /* Comment above and uncomment this to decrypt */
-  mdecrypt_generic (td, &buffer, size);
+  mdecrypt_generic (td, &buff, size);
   return 0;
 }
 
@@ -271,7 +269,7 @@ int main(int argc, char *argv[]) {
       if (encFlag)
 	{
 	  encryptInit();
-	  encrypt(rfd);
+	  encrypt(rfd, buffer);
 	}
       
       
