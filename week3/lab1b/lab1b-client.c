@@ -18,7 +18,66 @@
 #include <netinet/in.h>
 
 #include <string.h>
+#define h_addr h_addr_list[0] /* for backward compatibility */
+
+struct termios saved_attributes;
 struct pollfd fds[2];
+
+void sysFailed(char* sysCall, int exitNum)
+{
+  fprintf(stderr, "%s failed: %s\n", sysCall, strerror(errno));
+  exit(exitNum);
+}
+
+
+void
+reset_input_mode (void)
+{
+  if (tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes) == -1)
+    {
+      sysFailed("tcsetattr", 1);
+    }
+}
+
+void
+set_input_mode (void)
+{
+  struct termios tattr;
+  char *name;
+
+  /* Make sure stdin is a terminal. */
+  if (!isatty (STDIN_FILENO))
+    {
+      fprintf (stderr, "Not a terminal.\n");
+      exit (EXIT_FAILURE);
+    }
+
+  /* Save the terminal attributes so we can restore them later. */
+  if (tcgetattr (STDIN_FILENO, &saved_attributes) == -1)
+    {
+      sysFailed("tcgetattr", 1);
+    }
+  if(atexit (reset_input_mode) == -1) 
+    {
+      sysFailed("atexit", 1);
+    }
+
+  /* Set the funny terminal modes. */
+  if (tcgetattr (STDIN_FILENO, &tattr) == -1)
+    {
+      sysFailed("tcgetattr", 1);
+    }
+  tattr.c_iflag = ISTRIP;
+  tattr.c_oflag = 0;
+  tattr.c_lflag = 0;
+  
+  if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr) == -1)
+    {
+      sysFailed("tcsetattr", 1);
+    }
+}
+
+
 
 int main(int argc, char *argv[]) {
   int sockfd, portno, n;
@@ -26,7 +85,9 @@ int main(int argc, char *argv[]) {
   struct hostent *server;
    
   char buffer[256];
-   
+ 
+  set_input_mode();
+  
   if (argc < 3) {
     fprintf(stderr,"usage %s hostname port\n", argv[0]);
     exit(0);
@@ -78,7 +139,32 @@ int main(int argc, char *argv[]) {
     if (fds[0].revents & POLLIN) {
       //      printf("Please enter the message: ");
       bzero(buffer,256);
-      fgets(buffer,255,stdin);
+      //      fgets(buffer,255,stdin);
+      int rfd;
+      if ((rfd = read (STDIN_FILENO, buffer, 1)) ==  -1)  
+	sysFailed("read", 2);
+      for (int i = 0; i < rfd; i++)
+	{
+	  if (buffer[i] == '\n' || buffer[i] == '\r')
+	    {
+	      char smol[2] = {'\r', '\n'};
+	      if (write(1, &smol, 2) == -1)
+		{
+		  sysFailed("write ha", 1);
+		}
+	    }     
+	  else
+	    {
+	      if(write(1, &buffer[i], 1) == -1)
+		{
+		  sysFailed("write haha", 1);
+		}
+	    }
+	}
+      
+
+
+
    
       /* Send message to the server */
       n = write(sockfd, buffer, strlen(buffer));
