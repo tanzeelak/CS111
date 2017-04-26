@@ -25,7 +25,9 @@ int status;
 int newsockfd;
 char buffer[2048];
 struct pollfd fds[2];
-
+char* encopt = NULL;
+char key [1024];
+int keysize = 0;
 
 
 void sysFailed(char* sysCall, int exitNum)
@@ -61,18 +63,13 @@ MCRYPT encryptInit(void)
 {
   MCRYPT td;
   int i;
-  char *key;
-  char password[20];
-  char *IV;
-  int keysize=19; /* 128 bits */
 
-  key=calloc(1, keysize);
-  strcpy(password, "A_large_key");
+  char *IV;
+  //  int keysize=19; /* 128 bits */
 
   /* Generate the key using the password */
   /*  mhash_keygen( KEYGEN_MCRYPT, MHASH_MD5, key, keysize, NULL, 0, password, strlen(password));
    */
-  memmove( key, password, strlen(password));
 
   td = mcrypt_module_open("twofish", NULL, "cfb", NULL);
   if (td==MCRYPT_FAILED) {
@@ -109,7 +106,7 @@ int main( int argc, char *argv[] ) {
     int portFlag = 0;
     int encFlag = 0;
     char* portopt = NULL;
-    char* encopt = NULL;
+    //    char* encopt = NULL;
 
     static struct option long_options[] = {
       {"port", required_argument, 0, 'p'},
@@ -139,6 +136,8 @@ int main( int argc, char *argv[] ) {
     MCRYPT dtd;
     if (encFlag)
       {	
+	int encfd = open(encopt, O_RDONLY);
+	keysize = read(encfd, key, 1024);
 	etd = encryptInit();		
 	dtd = encryptInit();
       }

@@ -1,4 +1,4 @@
-#include <termios.h>
+x#include <termios.h>
 #include <getopt.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -160,8 +160,7 @@ int main(int argc, char *argv[]) {
   MCRYPT dtd;
   if (encFlag)
     {
-      int encfd = open(encopt, O_RDONLY);
-      keysize = read(encfd, key, 1024);
+      int ecfd = open(encopt, O_RDONLY);
       etd = encryptInit();
       dtd = encryptInit();
     }
