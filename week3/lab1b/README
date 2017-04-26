@@ -2,6 +2,7 @@ NAME: Tanzeela Khan
 EMAIL: tanzeelakhan@g.ucla.edu
 ID: 204577214
 
+Note: I am taking a slip day for this assignment that I am turning in one day late. 
 
 lab1b-client.c: The program opens a connection to the server using the --port option. The --log option contians a record of data. ^D and ^C are passed to the sever program, to whic it is connceted to by pipes. The --log option puts all the data written into a given file. The --encrypt option passes a key file that is encrypted by the client and sent to the server program. The client then received an encrypted file form the server that it decrypts.
 
