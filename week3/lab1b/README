@@ -2,11 +2,17 @@ NAME: Tanzeela Khan
 EMAIL: tanzeelakhan@g.ucla.edu
 ID: 204577214
 
-lab1a.c: Compiles to accept the command line argument --shell. Without --shell, this program acts as a character-at-a-time full duplex I/O. Terminal is to noncanical input mode using termios. <cr> and <lf> are mapped to <cr><lf> during the read. With --shell, the program uses pipes to pass input/output between the terminal and the shell. pollfd is used to alternate between input forom the keyboard and input from the shell, by creating two polls for reading from the keyboard and for reading from input. waitpid is used to catch the shell's exit status which is interpreted and printed at shutdown.
 
-Makefile: Includes name, email, and ID. The three commands are all (compiles the program), clean (remove executable and other unnecessary files), dist (builds tar file).
+lab1b-client.c: The program opens a connection to the server using the --port option. The --log option contians a record of data. ^D and ^C are passed to the sever program, to whic it is connceted to by pipes. The --log option puts all the data written into a given file. The --encrypt option passes a key file that is encrypted by the client and sent to the server program. The client then received an encrypted file form the server that it decrypts.
+
+lab1b-server.c: The program connects to the client using sockets. This program uses the clients' commands to send them to the shell which it creates with pipes. Much of lab1a was integrated into this part of the lab. The --encrypt option passes a key file that is used decrypt the encrypted file sent by the client to the server. The server sends back encrypted data from the server to the client.
+
+
+Makefile: Includes name, email, and ID. The three commands are all (creates botht he client and server executables), client (creates only the client executable), server (creates only the server executable), clean (remove executable and other unnecessary files), dist (builds tar file).
 
 Sources:
-https://www.tutorialspoint.com/unix_sockets/socket_client_example.htm
-https://www.tutorialspoint.com/unix_sockets/socket_server_example.htm
-http://stackoverflow.com/questions/18330673/bzero-bcopy-versus-memset-memcpy
+"Unix Socket - Client Examples", tutorialspoint.com, https://www.tutorialspoint.com/unix_sockets/socket_client_example.htm
+"Unix Socket - Server Examples", tutorialspoint.com,  https://www.tutorialspoint.com/unix_sockets/socket_server_example.htm
+"bzero() & bcopy() versus memset() & memcpy()", paxiablo, http://stackoverflow.com/questions/18330673/bzero-bcopy-versus-memset-memcpy
+"mcrypt(3) - Linux man page", linux.die.net, https://linux.die.net/man/3/mcrypt
+"creat(3) - Linux man page", linux.die.net, https://linux.die.net/man/3/creat
