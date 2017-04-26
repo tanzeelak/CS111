@@ -241,7 +241,11 @@ int main(int argc, char *argv[]) {
       n = write(sockfd, buffer, strlen(buffer));
       if (logFlag)
 	{
+	  char bytesString[50];
+	  sprintf(bytesString, "SENT %d bytes: ", n);
+	  write(logfd, bytesString, strlen(bytesString));
 	  write(logfd, buffer, n);
+	  write(logfd, "\n", 1);
 	}
       if (n < 0) {
 	perror("ERROR writing to socket");
@@ -266,11 +270,17 @@ int main(int argc, char *argv[]) {
         perror("ERROR reading from socket");
         exit(1);
       }
+      if (logFlag)
+	{
+	  char bytesString[50];
+	  sprintf(bytesString, "RECEIVED %d bytes: ", n);
+	  write(logfd, bytesString, strlen(bytesString));
+	  write(logfd, buffer, n);
+	  write(logfd, "\n", 1);
+	}
       if (encFlag)
 	mdecrypt_generic (dtd, buffer, n);
       write(STDOUT_FILENO, buffer, n);
-      if (logfd == 1)
-	write(logfd, buffer, n);
 
     }
   }

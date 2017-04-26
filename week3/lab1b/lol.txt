@@ -1,1 +1,137 @@
-lspwdls
+SENT 1 bytes: l
+SENT 1 bytes: s
+SENT 1 bytes: 
+RECEIVED 1 bytes: #
+RECEIVED 1 bytes: M
+RECEIVED 1 bytes: a
+RECEIVED 1 bytes: k
+RECEIVED 1 bytes: e
+RECEIVED 1 bytes: f
+RECEIVED 1 bytes: i
+RECEIVED 1 bytes: l
+RECEIVED 1 bytes: e
+RECEIVED 1 bytes: #
+RECEIVED 2 bytes: 
+
+RECEIVED 1 bytes: #
+RECEIVED 1 bytes: c
+RECEIVED 1 bytes: l
+RECEIVED 1 bytes: e
+RECEIVED 1 bytes: a
+RECEIVED 1 bytes: r
+RECEIVED 7 bytes: #
+#lab
+RECEIVED 24 bytes: 1a.c#
+Makefile
+Makefil
+RECEIVED 25 bytes: e~
+README
+client
+clien
+RECEIVED 8 bytes: t.c
+cli
+RECEIVED 22 bytes: ent.c~
+haha.diff
+hah
+RECEIVED 11 bytes: a.txt
+lab0
+RECEIVED 10 bytes: .c
+lab1a.
+RECEIVED 22 bytes: c
+lab1b-client
+lab1b
+RECEIVED 22 bytes: -client.c
+lab1b-clien
+RECEIVED 10 bytes: t.c~
+lab1
+RECEIVED 22 bytes: b-server
+lab1b-server
+RECEIVED 11 bytes: .c
+lab1b.c
+RECEIVED 23 bytes: ~
+lala.txt
+lol.txt
+m
+RECEIVED 22 bytes: orepls.txt
+nah.txt
+n
+RECEIVED 23 bytes: ahnah.txt
+nanah
+nonon
+RECEIVED 23 bytes: o
+pls.diff
+plspls.txt
+RECEIVED 25 bytes: 
+server
+server.c
+serve
+RECEIVED 12 bytes: r.c~
+sisi
+
+RECEIVED 13 bytes: yay
+yo.txt
+
+SENT 1 bytes: p
+SENT 1 bytes: w
+SENT 1 bytes: d
+SENT 1 bytes: 
+RECEIVED 1 bytes: /
+RECEIVED 1 bytes: u
+RECEIVED 1 bytes: /
+RECEIVED 1 bytes: c
+RECEIVED 1 bytes: s
+RECEIVED 1 bytes: /
+RECEIVED 1 bytes: u
+RECEIVED 1 bytes: g
+RECEIVED 1 bytes: r
+RECEIVED 1 bytes: a
+RECEIVED 1 bytes: d
+RECEIVED 1 bytes: /
+RECEIVED 1 bytes: t
+RECEIVED 1 bytes: a
+RECEIVED 1 bytes: n
+RECEIVED 1 bytes: z
+RECEIVED 1 bytes: e
+RECEIVED 7 bytes: ela/cs1
+RECEIVED 8 bytes: 11/week3
+RECEIVED 8 bytes: /lab1b
+
+SENT 1 bytes: l
+SENT 1 bytes: d
+SENT 1 bytes: 
+RECEIVED 1 bytes: l
+RECEIVED 1 bytes: d
+RECEIVED 1 bytes: :
+RECEIVED 1 bytes:  
+RECEIVED 1 bytes: n
+RECEIVED 1 bytes: o
+RECEIVED 1 bytes:  
+RECEIVED 1 bytes: i
+RECEIVED 1 bytes: n
+RECEIVED 1 bytes: p
+RECEIVED 1 bytes: u
+RECEIVED 1 bytes: t
+RECEIVED 1 bytes:  
+RECEIVED 1 bytes: f
+RECEIVED 1 bytes: i
+RECEIVED 1 bytes: l
+RECEIVED 1 bytes: e
+RECEIVED 3 bytes: s
+
+SENT 1 bytes: a
+SENT 1 bytes: f
+SENT 1 bytes: j
+SENT 1 bytes: 
+RECEIVED 1 bytes: /
+SENT 1 bytes: a
+RECEIVED 42 bytes: bin/bash: line 4: afj: command not found
+
+SENT 1 bytes: f
+SENT 1 bytes: d
+SENT 1 bytes: l
+SENT 1 bytes: s
+SENT 1 bytes: 
+RECEIVED 1 bytes: /
+RECEIVED 44 bytes: bin/bash: line 5: afdls: command not found
+
+SENT 1 bytes: 
