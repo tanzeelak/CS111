@@ -290,14 +290,16 @@ int main( int argc, char *argv[] ) {
 			  {
                             char temp[2] = {'\r', '\n'};
 			    // encrypt(2, temp);
-			    mcrypt_generic (etd, temp, 2);
+			    if (encFlag)
+			      mcrypt_generic (etd, temp, 2);
 
                             if (write(newsockfd, temp, 2) == -1)sysFailed("write", 1);
 			  }
                         else 
 			  {
 			    //encrypt(1, &buffer[j]);
-			    mcrypt_generic (etd, &buffer[j], 1);
+			    if (encFlag)
+			      mcrypt_generic (etd, &buffer[j], 1);
 			  if (write(newsockfd, &buffer[j], 1) == -1) sysFailed("write", 1);
 			  }
                     }

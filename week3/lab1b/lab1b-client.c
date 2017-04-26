@@ -239,8 +239,10 @@ int main(int argc, char *argv[]) {
       
       /* Send message to the server */
       n = write(sockfd, buffer, strlen(buffer));
-      if (logfd == 1)
-	write(logfd, buffer, n);
+      if (logFlag)
+	{
+	  write(logfd, buffer, n);
+	}
       if (n < 0) {
 	perror("ERROR writing to socket");
 	exit(1);
@@ -264,7 +266,8 @@ int main(int argc, char *argv[]) {
         perror("ERROR reading from socket");
         exit(1);
       }
-      mdecrypt_generic (dtd, buffer, n);
+      if (encFlag)
+	mdecrypt_generic (dtd, buffer, n);
       write(STDOUT_FILENO, buffer, n);
       if (logfd == 1)
 	write(logfd, buffer, n);
