@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
 #include <poll.h>
@@ -149,11 +150,11 @@ int main(int argc, char *argv[]) {
 
   if (logFlag)
     {
-      logfd = creat(logopt, 0666);
+      logfd = creat(logopt, S_IRWXU);
       if (logfd < 0)
 	{
 	  fprintf(stderr, "Failed to open input file. %s\n", strerror(errno));
-	  exit(2);
+	  exit(1);
 	}
     }
   MCRYPT etd;

@@ -12,7 +12,7 @@ CLIENT=./lab1b-client
 SERVER=./lab1b-server
 PGMS="$CLIENT $SERVER"
 
-TIMEOUT=1
+TIMEOUT=10
 let errors=0
 
 if [ -z "$1" ]
