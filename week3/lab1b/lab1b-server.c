@@ -25,7 +25,7 @@ int status;
 int newsockfd;
 char buffer[2048];
 struct pollfd fds[2];
-MCRYPT td;
+
 
 
 void sysFailed(char* sysCall, int exitNum)
@@ -57,8 +57,9 @@ void signal_callback_handler(int signum){
     exit(1);
 }
 
-int encryptInit(void)
+MCRYPT encryptInit(void)
 {
+  MCRYPT td;
   int i;
   char *key;
   char password[20];
@@ -75,7 +76,7 @@ int encryptInit(void)
 
   td = mcrypt_module_open("twofish", NULL, "cfb", NULL);
   if (td==MCRYPT_FAILED) {
-    return 1;
+    exit(1);
   }
   IV = malloc(mcrypt_enc_get_iv_size(td));
 
@@ -91,36 +92,12 @@ int encryptInit(void)
   i=mcrypt_generic_init( td, key, keysize, IV);
   if (i<0) {
     mcrypt_perror(i);
-    return 1;
+    exit(1);
   }
-
+  return td;
 
 }
 
-
-int encrypt(ssize_t size, char* buff)
-{
-
-  /* Encryption in CFB is performed in bytes */
-  mcrypt_generic (td, &buff, size);
-
-  /* Comment above and uncomment this to decrypt */
-  /*    mdecrypt_generic (td, &block_buffer, 1);  */
-
-
-  return 0;
-}
-
-int decrypt(ssize_t size, char* buff)
-{
-
-  /* Encryption in CFB is performed in bytes */
-  // mcrypt_generic (td, &buffer, size);
-
-  /* Comment above and uncomment this to decrypt */
-  mdecrypt_generic (td, &buff, size);
-  return 0;
-}
 
 int main( int argc, char *argv[] ) {
     int sockfd, portno, clilen;
@@ -158,9 +135,12 @@ int main( int argc, char *argv[] ) {
 	}
     }
 
+    MCRYPT etd;
+    MCRYPT dtd;
     if (encFlag)
-      {
-			encryptInit();
+      {	
+	etd = encryptInit();		
+	dtd = encryptInit();
       }
 
 
@@ -239,7 +219,8 @@ int main( int argc, char *argv[] ) {
                 if (fds[0].revents & POLLIN) {
 
                     if ((count = read(newsockfd, buffer, 2048)) == -1) sysFailed("Read", 1);
-		    if (encFlag)decrypt(count, buffer);
+		    if (encFlag)
+		      mdecrypt_generic (dtd, buffer, count);
 
                     int i;
                     for (i = 0; i < count; i++)
@@ -308,13 +289,15 @@ int main( int argc, char *argv[] ) {
                         if (buffer[j] == '\n')
 			  {
                             char temp[2] = {'\r', '\n'};
-			    //			    encrypt(2, temp);
+			    // encrypt(2, temp);
+			    mcrypt_generic (etd, temp, 2);
 
                             if (write(newsockfd, temp, 2) == -1)sysFailed("write", 1);
 			  }
                         else 
 			  {
-			    //			    encrypt(1, &buffer[j]);
+			    //encrypt(1, &buffer[j]);
+			    mcrypt_generic (etd, &buffer[j], 1);
 			  if (write(newsockfd, &buffer[j], 1) == -1) sysFailed("write", 1);
 			  }
                     }
@@ -375,8 +358,10 @@ if (n < 0) {
 
     if (encFlag)
       {
-	mcrypt_generic_deinit(td);
-	mcrypt_module_close(td);
+	mcrypt_generic_deinit(etd);
+	mcrypt_module_close(etd);
+	mcrypt_generic_deinit(dtd);
+	mcrypt_module_close(dtd);
 
       }
 

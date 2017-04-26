@@ -1,335 +1,449 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <termios.h>
 #define _POSIX_SOURCE
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <termios.h>
+#include <getopt.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <getopt.h>
-#include <poll.h>
+#include <errno.h>
 #include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <netdb.h>
 #include <netinet/in.h>
-
 #include <string.h>
-#define h_addr h_addr_list[0] /* for backward compatibility */
+#include <mcrypt.h>
 
-#define MAX_SIZE 2048
-int to_child_pipe[2], from_child_pipe[2];
-pid_t cd;
-char buffer[MAX_SIZE];
-int newsockfd, portno;
-
-void port_handler();
-void chid_process();
-void parent_process();
-void create_pipe(int pip[2]);
-
-void fin_exit();
+int to_child_pipe[2];
+int from_child_pipe[2];
+pid_t pid = -1;
+pid_t w;
+int status;
+int newsockfd;
+char buffer[2048];
+struct pollfd fds[2];
+MCRYPT td;
 
 
-
-void port_handler()
+void sysFailed(char* sysCall, int exitNum)
 {
-    int sockfd, clilen;
-    struct sockaddr_in serv_addr, cli_addr;
-    int  n;
-    /* First call to socket() function */
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    
-    if (sockfd < 0) {
-        perror("ERROR opening socket");
-        exit(1);
-    }
-    
-    /* Initialize socket structure */
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    portno = 5001;
-    
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(portno);
-    
-    /* Now bind the host address using bind() call.*/
-    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        perror("ERROR on binding");
-        exit(1);
-    }
-    
-    /* Now start listening for the clients, here process will
-     * go in sleep mode and will wait for the incoming connection
-     */
-    
-    listen(sockfd,5);
-    clilen = sizeof(cli_addr);
-    
-    /* Accept actual connection from the client */
-    newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-    
-    if (newsockfd < 0) {
-        perror("ERROR on accept");
-        exit(1);
-    }
-    
-    /* If connection is established then start communicating */
-    
-    while(1)
+  fprintf(stderr, "%s failed: %s\n", sysCall, strerror(errno));
+  exit(exitNum);
+}
+
+void signal_callback_handler(int signum){
+  //WAIT PID CASE 2
+
+  //  fprintf(stderr, "in signal handler: %d", pid);
+
+  if (kill(pid, SIGINT) == -1)
     {
-        bzero(buffer,MAX_SIZE);
-        
-        // n = read( newsockfd,buffer,MAX_SIZE-1 );
-        //fprintf(stderr, "Error in first read   %d\n", n);
-        
-        create_pipe(to_child_pipe);
-        create_pipe(from_child_pipe);
-        
-        cd =fork();
-        if(cd<0)
-        {
-            fprintf(stderr, "Error in fork() function!\n\n");
-            exit(1);
-        }
-        else if (cd ==0)
-        {
-            child_process();
-        }
-        else if(cd>0)
-        {
-            parent_process();
-        }
-        
-        printf("Here is the message: %s\n",buffer);
-        
-        /* Write a response to the client */
-        n = write(newsockfd,"I got your message",18);
-        
-        if (n < 0)
-        {
-            perror("ERROR writing to socket");
-            exit(1);
-        }
+      sysFailed("kill", 1);
     }
+
+  w = waitpid(pid, &status, 0);
+  if (w == -1)
+    {
+      fprintf(stderr, "Waitpid failed: %s\n", strerror(errno));
+      exit(1);
+    }
+
+  int upper = status&0xF0;
+  int lower = status&0x0F;
+
+  fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+
+  printf("Caught signal SIGPIPE %d\n",signum);
+  exit(1);
+}
+
+int encryptInit(void)
+{
+  int i;
+  char *key;
+  char password[20];
+  char *IV;
+  int keysize=19; /* 128 bits */
+
+  key=calloc(1, keysize);
+  strcpy(password, "A_large_key");
+
+  /* Generate the key using the password */
+  /*  mhash_keygen( KEYGEN_MCRYPT, MHASH_MD5, key, keysize, NULL, 0, password, strlen(password));
+   */
+  memmove( key, password, strlen(password));
+
+  td = mcrypt_module_open("twofish", NULL, "cfb", NULL);
+  if (td==MCRYPT_FAILED) {
+    return 1;
+  }
+  IV = malloc(mcrypt_enc_get_iv_size(td));
+
+  /* Put random data in IV. Note these are not real random data,
+   * consider using /dev/random or /dev/urandom.
+   */
+
+  /*  srand(time(0)); */
+  for (i=0; i< mcrypt_enc_get_iv_size( td); i++) {
+    IV[i]='a';
+  }
+
+  i=mcrypt_generic_init( td, key, keysize, IV);
+  if (i<0) {
+    mcrypt_perror(i);
+    return 1;
+  }
+
+
 }
 
 
-
-
-
-
-void child_process()
+int encrypt(ssize_t size)
 {
-    //printf("\nchild_process()\n");
-    close(to_child_pipe[1]);
-    dup2(to_child_pipe[0], 0);
-    
-    close(from_child_pipe[0]);
-    
-    dup2(from_child_pipe[1], 1);
-    dup2(from_child_pipe[1], 2);
-    
-    close(to_child_pipe[0]);
-    close(to_child_pipe[1]);
-    
-    char execvp_filename[]="/bin/bash";
-    char *execvp_argv[2];
-    execvp_argv[0]=execvp_filename;
-    execvp_argv[1]=NULL;
-    
-    
-    if(execvp(execvp_filename, execvp_argv) == -1)
-    {
-        fprintf(stderr, "execvp() failed!\n");
-        exit(1);
-    }
-    
+
+  /* Encryption in CFB is performed in bytes */
+  mcrypt_generic (td, &buffer, size);
+
+  /* Comment above and uncomment this to decrypt */
+  /*    mdecrypt_generic (td, &block_buffer, 1);  */
+
+  mcrypt_generic_deinit(td);
+  mcrypt_module_close(td);
+
+  return 0;
 }
 
-
-
-void fin_exit()
+int decrypt(ssize_t size)
 {
-    int status =0;
-    waitpid(cd, &status, 0);
-    //reset();
-    fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS %d\n",WTERMSIG(status), WEXITSTATUS(status) );
-    exit(0);
+
+  /* Encryption in CFB is performed in bytes */
+  // mcrypt_generic (td, &buffer, size);
+
+  /* Comment above and uncomment this to decrypt */
+  mdecrypt_generic (td, &buffer, size);
+
+  mcrypt_generic_deinit(td);
+  mcrypt_module_close(td);
+
+  return 0;
 }
-
-void signal_handler(int sig_num)
-{
-    
-    if(sig_num == SIGINT)
-    {
-        fin_exit();
-    }
-    if(sig_num==SIGPIPE)
-    {
-        fin_exit();
-    }
-}
-void parent_process()
-{
-    //printf("\nparent_process()\n");
-    close(to_child_pipe[0]);
-    close(from_child_pipe[1]);
-    struct pollfd pfds[2];
-    
-    
-    
-    pfds[0].events = POLLIN | POLLERR | POLLHUP;
-    pfds[0].fd = newsockfd;
-    pfds[1].fd = from_child_pipe[0];
-    pfds[1].events = POLLIN | POLLERR | POLLHUP ;
-    
-    while(1)
-    {
-        int ret_val = poll(pfds, 2, 0);
-        if(ret_val<0)
-        {
-            fprintf(stderr, "Error in poll() call!\n");
-            exit(1);
-        }
-        
-        
-        if(pfds[0].revents & POLLIN)
-        {
-            ssize_t lt = read(newsockfd, &buffer, MAX_SIZE);
-            if (lt < 0) {
-                perror("ERROR reading from socket");
-                exit(1);
-            }
-            //fprintf(stderr,"%d\n", lt);//delete later
-            //char buf[MAX_SIZE];
-            for(ssize_t i = 0; i<lt;i++)
-            {
-                
-                if(buffer[i]=='\003')
-                {
-                    //kill(cd, SIGINT);
-                }
-                
-                if(buffer[i] =='\n' || buffer[i] == '\r')
-                {
-                    char lf = '\n';
-                    char cr = '\r';
-                    buffer[i] = '\n';
-                    write(1, &cr, 1);
-                    write(1, &lf, 1);
-                }
-                else
-                {
-                    //write(1, &buffer[i], 1);
-                }
-                
-            }
-            write(to_child_pipe[1], &buffer, lt);
-            
-        }
-        
-        
-        else if(pfds[1].revents & POLLIN)
-        {
-            
-            
-            //fprintf(stderr, "!!!\n");
-            ssize_t lt2 = read(from_child_pipe[0], buffer, MAX_SIZE);
-            //	fprintf(stderr, "%d", len);
-            for(ssize_t i=0; i<lt2; i++)
-            {
-                if (buffer[i] == '\n')
-                {
-                    char n = '\n';
-                    char r= '\r';
-                    write(newsockfd,&r, 1);
-                    write(newsockfd, &n, 1);
-                    continue;
-                }	
-                write(newsockfd, &buffer[i], 1);
-            }
-            
-            //write(newsockfd, &buffer, MAX_SIZE);
-            
-            
-        }
-    }
-}
-
-
-
-
-
-
-void create_pipe(int pip[2])
-{
-    int a = pipe(pip);
-    
-    if(a==-1)
-    {
-        fprintf(stderr, "Error in creating pipe!\n");
-        exit(EXIT_FAILURE);
-    }
-    //printf("pipe created!");
-    
-}
-
-
-static struct option long_opts[] =
-{
-    {"port", 1, NULL, 'p'},
-    {"encrypt", 0, NULL, 'e'},
-    
-    {0,0,0,0}
-};
 
 int main( int argc, char *argv[] ) {
-    
-    int opt =0;
-    int portflag=0;
-    
-    while((opt = getopt_long(argc, argv, "", long_opts, NULL))!=-1)
-    {
-        switch(opt)
-        {
-            case 'p':
-                //fprintf(stdout,"shell==1");
-                signal(SIGINT, signal_handler);
-                portflag=1;	
-                portno=atoi(optarg);
-                break;
-                
-            case 'e':
-                break;
-                
-                
-                
-            default:
-                fprintf(stderr, "Invalid Option!!\n");
-                exit(1);
-                break;
-                
-        }
+  int sockfd, portno, clilen;
+  //  char buffer[256];
+  struct sockaddr_in serv_addr, cli_addr;
+  int  n;
+
+  int optParse = 0;
+  int portFlag = 0;
+  int encFlag = 0;
+  char* portopt = NULL;
+  char* encopt = NULL;
+
+  static struct option long_options[] = {
+    {"port", required_argument, 0, 'p'},
+    {"encrypt", required_argument, 0, 'e'},
+    {0,0,0,0}
+  };
+
+  int option_index = 0;
+  while((optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index)) != -1){
+    switch (optParse)
+      {
+      case 'p':
+	portFlag = 1;
+	portopt = optarg;
+	break;
+      case 'e':
+	encFlag = 1;
+	encopt = optarg;
+	break;
+      default:
+	fprintf(stderr, "--shell argument to pass input/output between the terminal and a shell:");
+	exit(1);
+      }
+  }
+
+
+
+
+  /* First call to socket() function */
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+  if (sockfd < 0) {
+    perror("ERROR opening socket");
+    exit(1);
+  }
+
+  /* Initialize socket structure */
+  memset((char *) &serv_addr, 0, sizeof(serv_addr));
+  portno = atoi(portopt);
+
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_addr.s_addr = INADDR_ANY;
+  serv_addr.sin_port = htons(portno);
+
+  /* Now bind the host address using bind() call.*/
+  if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+    perror("ERROR on binding");
+    exit(1);
+  }
+
+  /* Now start listening for the clients, here process will
+   * go in sleep mode and will wait for the incoming connection
+   */
+
+  listen(sockfd,5);
+  clilen = sizeof(cli_addr);
+
+  /* Accept actual connection from the client */
+  newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+
+  if (newsockfd < 0) {
+    perror("ERROR on accept");
+    exit(1);
+  }
+
+
+  while(1) {
+    /* If connection is established then start communicating */
+
+    memset(buffer, 0, 2048);
+    //  n = read( newsockfd,buffer,255 );
+    if (pipe(to_child_pipe) == -1)
+      {
+	fprintf(stderr, "pipe() failed!\n");
+	exit(1);
+      }
+    if (pipe(from_child_pipe) == -1)
+      {
+	fprintf(stderr, "pipe() failed! \n");
+	exit(1);
+      }
+
+    if ((pid = fork()) == -1)
+      {
+	sysFailed("fork", 1);
+      }
+
+    if (pid > 0)//parent
+      {
+	signal(SIGPIPE, signal_callback_handler);
+	if (close(to_child_pipe[0]) == -1)
+	  {
+	    sysFailed("close", 1);
+	  }
+
+	if (close(from_child_pipe[1]) == -1)
+	  {
+	    sysFailed("close", 1);
+	  }
+
+	fds[0].fd = newsockfd;
+	fds[1].fd = from_child_pipe[0];
+	fds[0].events = POLLIN | POLLHUP | POLLERR;
+	fds[1].events = POLLIN | POLLHUP | POLLERR;
+
+	for (;;) {
+	  int value = poll(fds, 2, 0);
+	  int count = 0;
+
+	  if (fds[0].revents & POLLIN) {
+
+	    if ((count = read(newsockfd, buffer, 2048)) == -1)
+	      {
+		sysFailed("Read", 1);
+	      }
+
+	    if (encFlag)
+	      {
+		encryptInit();
+		decrypt(count);
+	      }
+
+
+
+
+
+
+
+	    int i;
+	    for (i = 0; i < count; i++)
+	      {
+		if (*buffer == '\004') //control D
+		  {
+		    //WAIT PID CASE 1
+		    if(close(to_child_pipe[1]) == -1)
+		      {
+			sysFailed("Close", 1);
+		      }
+
+		    if (read(from_child_pipe[0], buffer, 2048) == -1)
+		      {
+			sysFailed("Read", 1);
+		      }
+		    w = waitpid(pid, &status, 0);
+		    if (w == -1)
+		      {
+			fprintf(stderr, "Waitpid failed: %s\n", strerror(errno));
+			exit(1);
+		      }
+
+		    int upper = status&0xF0;
+		    int lower = status&0x0F;
+
+		    fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+		    exit(0);
+
+		  }
+		if (*buffer == 0x03) //control C
+		  {
+		    if(kill(pid, SIGINT) == -1)
+		      {
+			sysFailed("Kill", 1);
+		      }
+
+		    waitpid(pid, &status, 0);
+		    if (w == -1)
+		      {
+			fprintf(stderr, "waitpid failed: %s\n", strerror(errno));
+			exit(1);
+		      }
+
+		    int upper = status&0xF0;
+		    int lower = status&0x0F;
+
+		    fprintf(stderr, "SHELL EXIT SIGNAL=%d STATUS=%d\n", lower, upper);
+
+		    exit(0);
+		  }
+		if (buffer[i] == '\r' || buffer[i] == '\n' )
+		  {
+		    buffer[i] = '\n';
+		    char temp[2] = {'\r', '\n'};
+		    if (write(1, temp, 2) == -1)
+		      {
+			sysFailed("write", 1);
+		      }
+		  }
+		else {
+		  if (write(1, &buffer[i], 1) == -1)
+		    {
+		      sysFailed("write", 1);
+		    }
+		}
+	      }
+	    //forward to shell
+	    if (write(to_child_pipe[1], buffer, count) == -1)
+	      {
+		sysFailed("write", 1);
+	      }
+	  }
+
+	  if (fds[1].revents & POLLIN) {
+
+	    if ((count = read(from_child_pipe[0], buffer, 2048)) == -1)
+	      {
+		sysFailed("read", 1);
+	      }
+	    int j;
+	    for (j = 0; j < count; j++)
+	      {
+		if (buffer[j] == '\n')
+		  {
+		    char temp[2] = {'\r', '\n'};
+		    //encrypt(2);
+
+		    if (write(newsockfd, temp, 2) == -1)
+		      {
+			sysFailed("write", 1);
+		      }
+		  }
+		else 
+		  {
+		    //  encrypt(count);
+		    if (write(newsockfd, &buffer[j], 1) == -1)
+		      {
+			sysFailed("write", 1);
+		      }
+		  }
+	      }
+	  }
+	}
+      }
+    else if (pid == 0) {
+
+      if (close(to_child_pipe[1]) == -1)
+	{
+	  sysFailed("close", 1);
+	}
+
+      if (close(from_child_pipe[0]) == -1)
+	{
+	  sysFailed("close", 1);
+	}
+
+      if (dup2(to_child_pipe[0], STDIN_FILENO) == -1)
+	{
+	  sysFailed("dup2", 1);
+	}
+
+      if (dup2(from_child_pipe[1], STDOUT_FILENO) == -1)
+	{
+	  sysFailed("dup2", 1);
+	}
+
+      if (dup2(from_child_pipe[1], 2) == -1)
+	{
+	  sysFailed("dup2", 1);
+	}
+
+      if (close(to_child_pipe[0]) == -1)
+	{
+	  sysFailed("close", 1);
+	}
+
+      if (close(from_child_pipe[1]) == -1)
+	{
+	  sysFailed("close", 1);
+	}
+      char *execvp_argv[2];
+      char execvp_filename[] = "/bin/bash";
+      execvp_argv[0] = execvp_filename;
+      execvp_argv[1] = NULL;
+      if (execvp(execvp_filename, execvp_argv) == -1)
+	{
+	  fprintf(stderr, "execvp() failed!\n");
+	  exit(1);
+	}
+
     }
-    
-    
-    
-    if(portflag)
-    {
-        port_handler();
-        
+    else {
+      fprintf(stderr, "fork() failed!\n");
+      exit(1);
     }
-    
-    
-    
-    
-    
-    return 0;
+
+
+
+
+
+    if (n < 0) {
+      perror("ERROR reading from socket");
+      exit(1);
+    }
+
+    printf("Here is the message: %s\n",buffer);
+
+    /* Write a response to the client */
+    //  n = write(newsockfd,"I got your message",18);
+
+    if (n < 0) {
+      perror("ERROR writing to socket");
+      exit(1);
+    }
+  }
+  return 0;
 }

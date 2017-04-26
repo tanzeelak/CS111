@@ -23,7 +23,7 @@ struct termios saved_attributes;
 struct pollfd fds[2];
 char buffer[2048];
 int logfd;
-MCRYPT td;
+//MCRYPT td;
 
 void sysFailed(char* sysCall, int exitNum)
 {
@@ -64,8 +64,9 @@ set_input_mode (void)
   if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr) == -1) sysFailed("tcsetattr", 1);
 }
 
-int encryptInit(void)
+MCRYPT encryptInit(void)
 {
+  MCRYPT td;
   int i;
   char *key;
   char password[20];
@@ -82,7 +83,7 @@ int encryptInit(void)
 
   td = mcrypt_module_open("twofish", NULL, "cfb", NULL);
   if (td==MCRYPT_FAILED) {
-    return 1;
+    exit(1);
   }
   IV = malloc(mcrypt_enc_get_iv_size(td));
 
@@ -98,34 +99,13 @@ int encryptInit(void)
   i=mcrypt_generic_init( td, key, keysize, IV);
   if (i<0) {
     mcrypt_perror(i);
-    return 1;
+    exit(1);
   }
-
+  return td;
 
 }
 
-int encrypt(ssize_t size, char* buff)
-{
-  /* Encryption in CFB is performed in bytes */
-  mcrypt_generic (td, &buff, size);
 
-  /* Comment above and uncomment this to decrypt */
-  /*    mdecrypt_generic (td, &block_buffer, 1);  */
-
-
-  return 0;
-}
-
-int decrypt(ssize_t size, char* buff)
-{
-
-  /* Encryption in CFB is performed in bytes */
-  // mcrypt_generic (td, &buffer, size);
-
-  /* Comment above and uncomment this to decrypt */
-  mdecrypt_generic (td, &buff, size);
-  return 0;
-}
 
 int main(int argc, char *argv[]) {
   int sockfd, portno, n;
@@ -180,9 +160,12 @@ int main(int argc, char *argv[]) {
 	  exit(2);
 	}
     }
+  MCRYPT etd;
+  MCRYPT dtd;
   if (encFlag)
     {
-	  encryptInit();
+      etd = encryptInit();
+      dtd = encryptInit();
     }
 
 
@@ -249,8 +232,8 @@ int main(int argc, char *argv[]) {
       
       if (encFlag)
 	{
-
-	  encrypt(rfd, buffer);
+	  mcrypt_generic (etd, buffer, rfd);
+	  //	  encrypt(rfd, buffer);
 	}
       
       
@@ -281,6 +264,7 @@ int main(int argc, char *argv[]) {
         perror("ERROR reading from socket");
         exit(1);
       }
+      mdecrypt_generic (dtd, buffer, n);
       write(STDOUT_FILENO, buffer, n);
       if (logfd == 1)
 	write(logfd, buffer, n);
@@ -289,8 +273,10 @@ int main(int argc, char *argv[]) {
   }
   if (encFlag)
     {
-      mcrypt_generic_deinit(td);
-      mcrypt_module_close(td);
+      mcrypt_generic_deinit(dtd);
+      mcrypt_module_close(dtd);
+      mcrypt_generic_deinit(etd);
+      mcrypt_module_close(etd);
 
     }
 
