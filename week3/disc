@@ -1,0 +1,38 @@
+1B
+1) !A -> client and server
+2) soccket
+3) encryption
+
+client -> prints to stdout
+|port
+v
+socket -> write result through pipe
+
+use file descript thorugh socket read/write (just one necessary)
+don't use bzero and bcoopy in code
+https://www.tutorialspoint.com/unix_sockets/socket_client_example.htm
+no ip addresses needed
+before the write ufnction, encrypte flag should be entered
+before read function, descrpt messages
+
+https://www.tutorialspoint.com/unix_sockets/socket_server_example.htm
+mew fo;e descro[tpr jater accetping connection (newsockfd)
+this new fd is used to send messages to the cloud
+
+use second buffer to store second part
+
+
+encry
+once key ong enuf, can get cyphertext
+use initializing vefctor to descirypt message
+https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation
+https://linux.die.net/man/3/mcrypt
+- Twofish is the default algorithm
+- use CFB
+int mcrypt_generic( MCRYPT td, void *plaintext, int len);
+int mdecrypt_generic( MCRYPT td, void *ciphertext, int len);
+
+first/second
+MCRYPT mcrypt_module_open( char *algorithm, char* algorithm_directory, char* mode, char* mode_directory);
+int mcrypt_generic_init( MCRYPT td, void *key, int lenofkey, void *IV);
+//two modules in code, client and server
