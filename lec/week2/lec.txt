@@ -1,0 +1,158 @@
+4/13: Scheudling
+Execution States with Swapping
+- Load up registers that were saved when stop running process
+- Blocka nd wait until data is avialbel: isues request. When receives what waiting for, allocated
+- 5 stae: running, ready, swap wait, swapped out, blockd
+- swap out: no interest in such
+- swap wait: operation waitint  to happen, so now care, still swapped otu, but borught back in
+Un-dispatching a runnin process
+- save registers: preseve state of the process
+  - user mode PC, PS and reg are alaredy saved on staack
+(Re-)dispatching a process
+- supv mode: decidison to swtich
+  - after state of curr process saved
+- sleect heprocess iwth pointer ot its descriptors
+- locate and restore saved state
+- now new process
+Blocking and Unblocking Processes
+- notation of whether process is runnable
+CPU Scheudlign
+- choosign the right, ready process tot urn
+- keep CPU prodcuvitely occupite, and performance exepc
+- ready queue: new oprocess goes into read queue
+- dispatcher: takes processes
+- context switcher: loads register
+- cput: running/executing
+- yield(or preemtped) -> ready queue
+  - low priority took place
+- resources reuqeust -> resource manager
+Goals and Metrics:
+- goals should be quantitiative and measureable
+  - if importnat, emasureable
+CPU Schedulign: Proposed Metrics
+- Candidate Metric: time to completion (seconds)
+  - different proceeses require different run times
+- Candidate metric: throughotu (proces/second)
+  - not idffernt process
+- Candidate Metric: response time
+  - ... 
+- Candidate metric: fairness
+  - maybe all proceceses hsouldn't get same time
+Raectivfied Scheudling Metrics
+- (benchmark) meant itme to completion for a prticualr job
+  - migh tneed a new bnechmark
+- throughoutput(operations per second)
+- mean response time
+Differnt Kinds of Systems Have Different Scheudlign Goals
+- Time Sharing
+  - fast reposne time to interactive pgms
+  - each sure gets euqal share of CPU
+- Batch
+  - maimize total sys throughput
+  - delays of indiv process not important
+- Real-time
+  - Critic oeprations must happen on time
+  - Non-critic operations may not happen at all
+Non-Preemtpitve Scehudling
+- scheudling processes runs until yields cpu
+  - yield to next processes
+- works for simpel systems
+- fear of piggy or buggy procceses
+Non-Preemtive: First-in-first-out (FIFO)
+- Algorithm:
+  - run first process in quue until blocks or yields
+- Advntages:
+  - very simple, fair, all proces will be served
+- Problems  
+- (10 + 20 + 120)/3
+- (100 + 110 + 120)/3
+Non-Preemtpive: Shortest Job First
+- Algorithm:
+  - all procceses declare expeccted run time
+  - Starvation can be okay
+- Advntages
+  - likely to yield the fastest resp. time
+- Problems
+  - some processes may face unbounded wait times (long procees)
+  - ability to correclty estimated req run tim
+Starvation
+- unbounded waiting times
+  - not merely aCPU shceduling issue
+  - can happen with any controlled resource
+- caused by case-by-case discrimination
+- ways to prevent
+  - strict (FIFO) sueueing of requests
+    - cred for time spend wiatin is equiv
+Non-Premtive: Prioirty
+- Algorithm:
+  - all proccesses given apiriorty
+  - run highest piroirty until blocsk or yeilds
+- Advntages
+  - adjust piriorties
+- Problems:
+  - less aribirrtary stravation possible
+    - new ppl keep coming in so never get a turn
+  - per-process may not be fine enough control
+Preemptive Scheduling
+- process can be forced to yield at any time
+  - if higher priroirty proces becomes ready
+  - runnign proceses' pprirot8y is lowered
+- Advantages: enables enforced fair share shceudling
+- Problems
+  - omtrpdices gratotiotous context switches
+Forcing Processes to Yield
+- every time enter system, take CPU away form process
+- Consult Shceudluer before reutrning to process
+Round Robin Example
+- ResponseTime: (0+11+60)/3
+- Resp: (0+11+22)/3
+Costs of an extra context-switch
+- Entering the OS
+- ..
+So Which Approach is Best
+- PreEmptive Has Better Repsosne Time
+  - what choose for time-slice
+- There is no "best" algorithm
+  - performance depends on specific job mix
+- The "Naturla" Time-Slice
+  - CPU share = time_slice x slices/seoncd
+- Context Switches are Far From Free
+  - waste useful cycles
+Dynamic Mulit-Queue Scheudling
+- priority game: lower prioirity longe ryou've been running,
+  raise pririotiy longer yuo've been waiting
+- Once set in place, these processes are self calibrating
+  - self calibrating, adapat
+- Tuning: avoid over-correftion/oscillation
+
+Dynamic Multi-Queue Scheduling
+- real time queue
+- short quantum queue
+
+Mechanism/Policy Separation
+- simple built-in scheudler mechanisms
+  - always run the highest piroirty process
+  - formulae to ocmpute priorty 
+
+Real time schedulers
+- soeme things must happen at parituclar times
+  - gaps in songs, rivet gets, adjust spoielers for space shuttle
+- real time scheudlig has deadlines
+  - can beoft or hard
+Ensuring Hard Deadlines
+- Requires deep understanidng of all code
+  - know exactly how long it takes in every case
+Soft Real Time Scheudlers
+- Highly desirable to meet your deadlines
+- Scheulder undersantd s might miss deadlines, best effort
+- some clases of dealdines are harder than othres
+- dynamic/vaiable traffic. 
+Soft Tiem and Preemption
+- nota ll pgms need to run to completion
+- policty quesiton: what if imiss deadline
+Soft Real-Time Algorithms
+- Most common is Earliest Dealdinge First
+- Minimizes totoal lateness
+Graceful Degradation
+- System overlodds will happen
+  - random flunctuations in traffic
