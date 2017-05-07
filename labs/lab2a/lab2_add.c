@@ -44,10 +44,10 @@ void* threadAdd(void* ptr)
 
   for (i = 0; i < iterNum; i++)
     {
-      perror("pls");
+
       if (syncopt == 'm')
 	{
-	  perror("wautp");
+
 	  pthread_mutex_lock(&count_mutex);
 	  add(counter, 1);
 	  add(counter, -1);
@@ -62,7 +62,7 @@ void* threadAdd(void* ptr)
 	}
       else if (syncopt == 'c')
 	{
-	  
+	  add_c(counter, 1);
 	}
       else 
 	{
