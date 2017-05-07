@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
     void *status;
 
     static struct option long_options[] = {
-      {"threads", no_argument, 0, 't'},
-      {"iterations", no_argument, 0, 'i'},
+      {"threads", required_argument, 0, 't'},
+      {"iterations", required_argument, 0, 'i'},
       {0,0,0,0}
     };
 
