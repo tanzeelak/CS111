@@ -14,7 +14,8 @@ struct Data
   int long long iterNum;
 };
 
-pthread_mutex_t mutex;
+pthread_mutex_t count_mutex;
+long long count;
 int threadNum = 1;
 int iterNum = 1;
 //struct Data dat;
@@ -59,6 +60,7 @@ int main(int argc, char *argv[])
     int rc;
     pthread_attr_t attr;
     void *status;
+   
 
     static struct option long_options[] = {
       {"threads", required_argument, 0, 't'},
@@ -130,6 +132,10 @@ int main(int argc, char *argv[])
       }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
-    printf("sum: %lli\n",*(dat.ptr));
+
+    long long numOp = threadNum * iterNum * 2;
+    long long runTime = end.tv_nsec - start.tv_nsec;
+    long long aveTime = runTime/numOp;
+    fprintf(stdout, "add-none,%i,%i,%i,%lli,%lli,%lli\n", threadNum, iterNum, numOp, runTime, aveTime, *(dat.ptr));
 
 }
