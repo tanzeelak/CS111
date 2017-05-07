@@ -63,6 +63,7 @@ void* threadAdd(void* ptr)
       else if (syncopt == 'c')
 	{
 	  add_c(counter, 1);
+	  add_c(counter, -1);
 	}
       else 
 	{
@@ -85,14 +86,13 @@ int main(int argc, char *argv[])
     char* threadopt = NULL;
     char* iteropt = NULL;
     char* yieldopt = NULL;
-
     struct timespec start, end;
 
     int i;
     int rc;
     pthread_attr_t attr;
     void *status;
-   
+    
 
     static struct option long_options[] = {
       {"threads", required_argument, 0, 't'},
