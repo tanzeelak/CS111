@@ -8,41 +8,53 @@
 #define print_err() do {if (errno) {fprintf(stderr, "error %s", strerr(errno)); exit(1);}} while(0)
 
 
-struct Data
-{
-  int long long *ptr;
-  int long long iterNum;
-};
-
 pthread_mutex_t count_mutex;
 long long count;
 int threadNum = 1;
 int iterNum = 1;
-//struct Data dat;
+int opt_yield = 0;
 
-void add(long long *pointer, long long value) {
+void addNone(long long *pointer, long long value) {
   long long sum = *pointer + value;
   *pointer = sum;
 }
 
+void add(long long *pointer, long long value) {
+  long long sum = *pointer + value;
+  if (opt_yield)
+    sched_yield();
+  *pointer = sum;
+}
 
+/*
 void fakeAdd(struct Data *datPass)
 {
   int i;
-  for (i = 0; i < datPass->iterNum; i++)
-    ++(*(datPass->ptr));
-  for (i = 0; i < datPass->iterNum; i++)
-    --(*(datPass->ptr));
-  
-}
 
-void threadAdd(int num)
+  for (i = 0; i < datPass->iterNum; i++)
+    {
+      ++(*(datPass->ptr));
+      if (opt_yield)
+	sched_yield();
+    }
+  for (i = 0; i < datPass->iterNum; i++)
+    {    
+      --(*(datPass->ptr));
+      if (opt_yield)
+	sched_yield();
+    }
+ 
+}
+*/
+void* threadAdd(void* ptr)
 {
-  //  void add(long long *pointer, long long value) 
-  //y{
-  //    long long sum = *pointer + value;
-  //    *pointer = sum;
-    //  }
+  int i;
+  long long* counter = (long long*)ptr;
+  for (i = 0; i < iterNum; i++)
+    {
+      add(counter, 1);
+      add(counter, -1);
+    }
 
 }
 
@@ -52,10 +64,13 @@ int main(int argc, char *argv[])
     int optParse = 0;
     int threadFlag = 0;
     int iterFlag = 0;
+    int yieldFlag = 0;
     char* threadopt = NULL;
     char* iteropt = NULL;
+    char* yieldopt = NULL;
+
     struct timespec start, end;
-    //    int long long counter = 0;
+
     int i;
     int rc;
     pthread_attr_t attr;
@@ -65,6 +80,7 @@ int main(int argc, char *argv[])
     static struct option long_options[] = {
       {"threads", required_argument, 0, 't'},
       {"iterations", required_argument, 0, 'i'},
+      {"yield", no_argument, 0, 'y'},
       {0,0,0,0}
     };
 
@@ -80,6 +96,9 @@ int main(int argc, char *argv[])
           iterFlag = 1;
           iteropt = optarg;
           break;
+	case 'y':
+	  yieldFlag = 1;
+	  break;
         default:
           fprintf(stderr, "Proper usage of options: --port=portnum, --encrypt=filename\n");
           exit(1);
@@ -94,18 +113,12 @@ int main(int argc, char *argv[])
       {
 	iterNum = atoi(iteropt);
       }
-
-    struct Data dat;
-
-    dat.ptr = malloc(sizeof(long long));
-    *(dat.ptr) = 0;
-
-    dat.iterNum = iterNum;
-
-
+    if (yieldFlag)
+      {
+	opt_yield = 1;
+      }
 
     clock_gettime(CLOCK_MONOTONIC, &start);
-
 
     pthread_t *threads = malloc(threadNum * sizeof(pthread_t));
 
@@ -114,7 +127,7 @@ int main(int argc, char *argv[])
 
     for (i = 0; i < threadNum; i++)
       {
-	rc = pthread_create(&threads[i], &attr, fakeAdd, &dat);
+	rc = pthread_create(&threads[i], &attr, threadAdd, &count);
 	if (rc) {
 	  fprintf(stderr, "ERROR: return code from pthread_create():%d\n", rc);
 	  exit(-1);
@@ -133,9 +146,11 @@ int main(int argc, char *argv[])
 
     clock_gettime(CLOCK_MONOTONIC, &end);
 
+
+    
     long long numOp = threadNum * iterNum * 2;
     long long runTime = end.tv_nsec - start.tv_nsec;
     long long aveTime = runTime/numOp;
-    fprintf(stdout, "add-none,%i,%i,%i,%lli,%lli,%lli\n", threadNum, iterNum, numOp, runTime, aveTime, *(dat.ptr));
+    fprintf(stdout, "add-none,%i,%i,%i,%lli,%lli,%lli\n", threadNum, iterNum, numOp, runTime, aveTime, count);
 
 }
