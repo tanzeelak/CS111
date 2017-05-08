@@ -245,18 +245,17 @@ int main(int argc, char *argv[])
     if (yieldFlag)
       {
 	opt_yield = 1;
+	fprintf(stderr, "opt_yield: %i", opt_yield);
 	for (i = 0; i != '\0'; i++)
 	  {
 	    if (yieldopt[i] == 'i')
-	      insFlag = 1;
+	      opt_yield += INSERT_YIELD;
 	    if (yieldopt[i] == 'd')
-	      delFlag = 1;
+	      opt_yield += DELETE_YIELD;
 	    if (yieldopt[i] == 'l')
-	      lookFlag = 1;
+	      opt_yield += LOOKUP_YIELD;
 	  }
       }
-
-
 
     
     //INITIALIZE EMPTY LIST

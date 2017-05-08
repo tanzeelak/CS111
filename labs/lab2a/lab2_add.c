@@ -92,7 +92,7 @@ void determineTag(void)
     else if (syncopt == 's')
 	strcpy(tag,"add-s");
     else if (syncopt == 'c')
-	strcpy(tag,"add-s");
+	strcpy(tag,"add-c");
     else 
 	strcpy(tag,"add-none");
 
