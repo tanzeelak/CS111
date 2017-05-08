@@ -120,25 +120,54 @@ void* threadAdd(void* ptr)
 
 void* listAdd(void* offset)
 {
-  perror("pls");
+
   int i, added, deleted;
   SortedListElement_t *toDel;
   
-  fprintf(stderr, "offset: %d\n", *(int*)offset);
-  for (i = *(int*)offset; i < *(int*)offset+iterNum; i++){
-    perror("pls again");
-      SortedList_insert(list, &elem[i]);
-      perror("help");
+    fprintf(stderr, "offset: %d\n", *(int*)offset);
+  for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
+    {
+      if (syncopt == 'm')
+	{
+	  pthread_mutex_lock(&count_mutex);
+	  SortedList_insert(list, &elem[i]);
+	  pthread_mutex_unlock(&count_mutex);
+	}
+      else if (syncopt == 's')
+	{
+  	  while(__sync_lock_test_and_set(&testAndSet, 1));
+	  SortedList_insert(list, &elem[i]);
+	  __sync_lock_release(&testAndSet);
+	}
+      else
+	{
+	  SortedList_insert(list, &elem[i]);
+	}
     }
-  perror("lol");
   added = SortedList_length(list);
-  perror("lnao");
   fprintf(stderr, "added length: %d\n", added);
 
   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
     {
-      toDel = SortedList_lookup(list, elem[i].key);
-      SortedList_delete(&elem[i]);
+      if (syncopt == 'm')
+	{
+	  pthread_mutex_lock(&count_mutex);
+	  toDel = SortedList_lookup(list, elem[i].key);
+	  SortedList_delete(&elem[i]);
+	  pthread_mutex_unlock(&count_mutex);
+	}
+      else if (syncopt == 's')
+	{
+  	  while(__sync_lock_test_and_set(&testAndSet, 1));
+	  toDel = SortedList_lookup(list, elem[i].key);
+	  SortedList_delete(&elem[i]);
+	  __sync_lock_release(&testAndSet);
+	}
+      else
+	{
+	  toDel = SortedList_lookup(list, elem[i].key);
+	  SortedList_delete(&elem[i]);
+	}
     }
   deleted = SortedList_length(list);
   fprintf(stdout, "deleted length: %d\n", deleted);
@@ -293,8 +322,5 @@ int main(int argc, char *argv[])
     long long runTime = end.tv_nsec - start.tv_nsec;
     long long aveTime = runTime/numOp;
     fprintf(stdout, "add-none,%i,%i,%i,%lli,%lli,%lli\n", threadNum, iterNum, numOp, runTime, aveTime, count);
-
-
-
 */
 }
