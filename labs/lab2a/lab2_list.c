@@ -23,7 +23,7 @@ char* randKey = NULL;
 int reqNum;
 int spin;
 int* offsetArr;
-
+char tag[30];
 
 void initList(void)
 {
@@ -81,42 +81,6 @@ void add_c(long long *pointer, long long value) {
   }while(__sync_val_compare_and_swap(pointer, oldValue, sum) != oldValue);
 
 }
-
-void* threadAdd(void* ptr)
-{
-  int i;
-  long long* counter = (long long*)ptr;
-
-  for (i = 0; i < iterNum; i++)
-    {
-      if (syncopt == 'm')
-	{
-	  pthread_mutex_lock(&count_mutex);
-	  add(counter, 1);
-	  add(counter, -1);
-	  pthread_mutex_unlock(&count_mutex);
-	}	
-      else if (syncopt == 's')
-	{
-  	  while(__sync_lock_test_and_set(&testAndSet, 1));
-	  add(counter, 1);
-	  add(counter, -1);
-	  __sync_lock_release(&testAndSet);
-	}
-      else if (syncopt == 'c')
-	{
-	  add_c(counter, 1);
-	  add_c(counter, -1);
-	}
-      else 
-	{
-	  add(counter, 1);
-	  add(counter, -1);
-	}
-    }
-}
-
-
 
 void* listAdd(void* offset)
 {
@@ -179,7 +143,6 @@ void* listAdd(void* offset)
 
 int main(int argc, char *argv[])
 {
-
     int optParse = 0;
     int threadFlag = 0;
     int iterFlag = 0;
@@ -191,7 +154,8 @@ int main(int argc, char *argv[])
     char* threadopt = NULL;
     char* iteropt = NULL;
     char* yieldopt = NULL;
-    
+    char* syncoptS = NULL;
+
     struct timespec start, end;
 
     int i;
@@ -200,6 +164,8 @@ int main(int argc, char *argv[])
     void *status;
     srand(time(NULL));    
 
+
+    strcpy(tag,"list-");
     static struct option long_options[] = {
       {"threads", required_argument, 0, 't'},
       {"iterations", required_argument, 0, 'i'},
@@ -227,6 +193,7 @@ int main(int argc, char *argv[])
 	case 's':
 	  syncFlag = 1;
 	  syncopt = optarg[0];
+	  syncoptS = optarg;
 	  break;
         default:
           fprintf(stderr, "Proper usage of options: --port=portnum, --encrypt=filename\n");
@@ -244,6 +211,8 @@ int main(int argc, char *argv[])
       }
     if (yieldFlag)
       {
+	strcat(tag, yieldopt); 
+	strcat(tag,"-");
 	opt_yield = 1;
 	fprintf(stderr, "opt_yield: %i", opt_yield);
 	for (i = 0; i != '\0'; i++)
@@ -256,6 +225,23 @@ int main(int argc, char *argv[])
 	      opt_yield += LOOKUP_YIELD;
 	  }
       }
+    else 
+      {
+	strcat(tag,"none-");
+      }
+    if (syncFlag)
+      {
+	strcat(tag,syncoptS);
+      }
+    else 
+      {
+	strcat(tag,"none");
+      }
+
+    //    fprintf(stderr, "TAG TAG TAG TAG TAG: %s\n\n", tag);
+    //adding to name
+
+
 
     
     //INITIALIZE EMPTY LIST
@@ -280,10 +266,7 @@ int main(int argc, char *argv[])
 	elem[i].key = randKey;
       }
 
-
-
     clock_gettime(CLOCK_MONOTONIC, &start);
-
     pthread_t *threads = malloc(threadNum * sizeof(pthread_t));
     int* tids = malloc(threadNum * sizeof(int));
 
@@ -314,12 +297,12 @@ int main(int argc, char *argv[])
 	}
       }
     clock_gettime(CLOCK_MONOTONIC, &end);
-
-    /*
     
-    long long numOp = threadNum * iterNum * 2;
+
+    
+    long long numOp = threadNum * iterNum * 3;
     long long runTime = end.tv_nsec - start.tv_nsec;
     long long aveTime = runTime/numOp;
-    fprintf(stdout, "add-none,%i,%i,%i,%lli,%lli,%lli\n", threadNum, iterNum, numOp, runTime, aveTime, count);
-*/
+    fprintf(stdout, "%s,%i,%i,1,%i,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, runTime, aveTime, count);
+
 }
