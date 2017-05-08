@@ -22,6 +22,7 @@ int randSize = 0;
 char* randKey = NULL;
 int reqNum;
 int spin;
+int* offsetArr;
 
 
 void initList(void)
@@ -117,20 +118,24 @@ void* threadAdd(void* ptr)
 
 
 
-void* listAdd(void* currThread)
+void* listAdd(void* offset)
 {
-
+  perror("pls");
   int i, added, deleted;
   SortedListElement_t *toDel;
-  for (i = 0; i < iterNum; i++){
-    
+  
+  fprintf(stderr, "offset: %d\n", *(int*)offset);
+  for (i = *(int*)offset; i < *(int*)offset+iterNum; i++){
+    perror("pls again");
       SortedList_insert(list, &elem[i]);
+      perror("help");
     }
-
+  perror("lol");
   added = SortedList_length(list);
+  perror("lnao");
   fprintf(stderr, "added length: %d\n", added);
 
-  for (i = 0; i < iterNum; i++)
+  for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
     {
       toDel = SortedList_lookup(list, elem[i].key);
       SortedList_delete(&elem[i]);
@@ -234,20 +239,19 @@ int main(int argc, char *argv[])
     reqNum = threadNum * iterNum;
     elem = malloc(reqNum * sizeof(SortedListElement_t));
     fprintf(stdout, "%i\n", reqNum);
+    offsetArr = malloc(threadNum *sizeof(int));
+    
 
     initLocks();
-
 
     //add keys
     for (i = 0; i < reqNum; i++)
       {
 	randSize = rand() % 10;
-	//	fprintf(stdout, "%i\n", randSize);
 	randKey = randstring(randSize);
-	//	fprintf(stdout, "before insertion randkey: %s\n", randKey);
 	elem[i].key = randKey;
+      }
 
-	}
 
 
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -261,7 +265,10 @@ int main(int argc, char *argv[])
     for (i = 0; i < threadNum; i++)
       {
 	tids[i] = i;
-	rc = pthread_create(&threads[i], &attr, listAdd, (void*)&elem[i*iterNum]); 
+	long long offset = i * iterNum;
+	offsetArr[i] = i * iterNum;
+	fprintf(stderr, "before adding offset: %d\n", offsetArr[i]);
+	rc = pthread_create(&threads[i], &attr, listAdd, &offsetArr[i]); 
 
 	if (rc) {
 	  fprintf(stderr, "ERROR: return code from pthread_create():%d\n", rc);
