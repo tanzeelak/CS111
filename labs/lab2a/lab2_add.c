@@ -6,6 +6,7 @@
 #include <time.h>
 #include <string.h>
 
+
 #define print_err() do {if (errno) {fprintf(stderr, "error %s", strerr(errno)); exit(1);}} while(0)
 
 
@@ -16,7 +17,8 @@ int iterNum = 1;
 int opt_yield = 0;
 int testAndSet = 0;
 char syncopt = NULL;
-
+int yieldFlag = 0;
+char tag[20];
 
 void add(long long *pointer, long long value) {
   long long sum = *pointer + value;
@@ -75,19 +77,39 @@ void* threadAdd(void* ptr)
 
 }
 
+void determineTag(void)
+{
+    if (yieldFlag && syncopt == 'm')
+	strcpy(tag,"add-yield-m");
+    else if (yieldFlag && syncopt == 's')
+	strcpy(tag,"add-yield-s");
+    else if (yieldFlag && syncopt == 'c')
+	strcpy(tag,"add-yield-c");
+    else if (yieldFlag)
+	strcpy(tag,"add-yield-none");
+    else if (syncopt == 'm')
+	strcpy(tag,"add-m");
+    else if (syncopt == 's')
+	strcpy(tag,"add-s");
+    else if (syncopt == 'c')
+	strcpy(tag,"add-s");
+    else 
+	strcpy(tag,"add-none");
+
+}
+
 int main(int argc, char *argv[])
 {
 
     int optParse = 0;
     int threadFlag = 0;
     int iterFlag = 0;
-    int yieldFlag = 0;
     int syncFlag = 0;
     char* threadopt = NULL;
     char* iteropt = NULL;
     char* yieldopt = NULL;
     struct timespec start, end;
-
+    //    char* tag = NULL;
     int i;
     int rc;
     pthread_attr_t attr;
@@ -142,7 +164,7 @@ int main(int argc, char *argv[])
     if (syncFlag)
       {
       }
-
+    determineTag();
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     pthread_t *threads = malloc(threadNum * sizeof(pthread_t));
@@ -172,10 +194,9 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &end);
 
 
-    
     long long numOp = threadNum * iterNum * 2;
     long long runTime = end.tv_nsec - start.tv_nsec;
     long long aveTime = runTime/numOp;
-    fprintf(stdout, "add-none,%i,%i,%i,%lli,%lli,%lli\n", threadNum, iterNum, numOp, runTime, aveTime, count);
+    fprintf(stdout, "%s,%i,%i,%i,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, runTime, aveTime, count);
 
 }
