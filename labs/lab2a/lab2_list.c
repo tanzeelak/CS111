@@ -46,18 +46,17 @@ char *randstring(int length) {
   char *randomString;
 
   randomString = malloc(sizeof(char) * (length +1));
-  perror("hi");
+
   if (!randomString) {
     return (char*)0;
   }
-  perror("ho");
   unsigned int key = 0;
 
   for (int n = 0;n < length;n++) {            
     key = rand() % stringLen;          
     randomString[n] = string[key];
   }
-  perror("nah");
+
   randomString[length] = '\0';
 
   return randomString;
@@ -116,24 +115,30 @@ void* threadAdd(void* ptr)
     }
 }
 
-void* listAdd(void* ptr)
+
+
+void* listAdd(void* currThread)
 {
-  int i;
+
+  int i, added, deleted;
   SortedListElement_t *toDel;
-  for (i = 0; i < reqNum; i++)
-    {
-      randSize = rand() % 10;
-      randKey = randstring(randSize);
-      elem[i].key = randKey;
+  for (i = 0; i < iterNum; i++){
+    
       SortedList_insert(list, &elem[i]);
     }
-  for (i = 0; i < reqNum; i++)
+
+  added = SortedList_length(list);
+  fprintf(stderr, "added length: %d\n", added);
+
+  for (i = 0; i < iterNum; i++)
     {
       toDel = SortedList_lookup(list, elem[i].key);
       SortedList_delete(&elem[i]);
     }
-}
+  deleted = SortedList_length(list);
+  fprintf(stdout, "deleted length: %d\n", deleted);
 
+}
 
 
 
@@ -233,23 +238,18 @@ int main(int argc, char *argv[])
     initLocks();
 
 
-    //add node
+    //add keys
     for (i = 0; i < reqNum; i++)
       {
 	randSize = rand() % 10;
-	fprintf(stdout, "%i\n", randSize);
+	//	fprintf(stdout, "%i\n", randSize);
 	randKey = randstring(randSize);
-	fprintf(stdout, "before insertion randkey: %s\n", randKey);
+	//	fprintf(stdout, "before insertion randkey: %s\n", randKey);
 	elem[i].key = randKey;
-	SortedList_insert(list, &elem[i]);
-      }
 
-    int sizeO = SortedList_length(list);
-    fprintf(stdout, "list size: %i\n", sizeO);
+	}
 
 
-
-    
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     pthread_t *threads = malloc(threadNum * sizeof(pthread_t));
@@ -260,11 +260,9 @@ int main(int argc, char *argv[])
 
     for (i = 0; i < threadNum; i++)
       {
-	//use list insert elements instead of threadAdd and count
-	//in func, gets list slenght
-	//looks upa nd dletes prev inserted keeys
 	tids[i] = i;
-	rc = pthread_create(&threads[i], &attr, listAdd, &count); 
+	rc = pthread_create(&threads[i], &attr, listAdd, (void*)&elem[i*iterNum]); 
+
 	if (rc) {
 	  fprintf(stderr, "ERROR: return code from pthread_create():%d\n", rc);
 	  exit(-1);
