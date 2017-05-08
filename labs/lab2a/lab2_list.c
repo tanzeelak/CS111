@@ -18,7 +18,27 @@ int testAndSet = 0;
 char syncopt = NULL;
 SortedList_t* list; 
 SortedListElement_t* elem;
+int randSize = 0;
+char* randKey = NULL;
+int reqNum;
+int spin;
 
+
+void initList(void)
+{
+   list = malloc(sizeof(SortedList_t));
+   list->key = NULL;
+   list->next = list;
+   list->prev = list;
+}
+
+void initLocks(void)
+{
+  if (syncopt == 'm')
+    pthread_mutex_init(&count_mutex,NULL);
+  if (syncopt == 's')
+      spin = 0; 
+}
 
 char *randstring(int length) {    
   char *string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
@@ -96,6 +116,28 @@ void* threadAdd(void* ptr)
     }
 }
 
+void* listAdd(void* ptr)
+{
+  int i;
+  SortedListElement_t *toDel;
+  for (i = 0; i < reqNum; i++)
+    {
+      randSize = rand() % 10;
+      randKey = randstring(randSize);
+      elem[i].key = randKey;
+      SortedList_insert(list, &elem[i]);
+    }
+  for (i = 0; i < reqNum; i++)
+    {
+      toDel = SortedList_lookup(list, elem[i].key);
+      SortedList_delete(&elem[i]);
+    }
+}
+
+
+
+
+
 int main(int argc, char *argv[])
 {
 
@@ -117,7 +159,7 @@ int main(int argc, char *argv[])
     int rc;
     pthread_attr_t attr;
     void *status;
-    
+    srand(time(NULL));    
 
     static struct option long_options[] = {
       {"threads", required_argument, 0, 't'},
@@ -181,19 +223,17 @@ int main(int argc, char *argv[])
     //INITIALIZE EMPTY LIST
     //init list
 
-    list = malloc(sizeof(SortedList_t));
-    list->key = NULL;
-    list->next = list;
-    list->prev = list;
+    initList();
 
-    
-    int randSize = 0;
-    char* randKey = NULL;
-    int reqNum = threadNum * iterNum;
+    //init elements
+    reqNum = threadNum * iterNum;
     elem = malloc(reqNum * sizeof(SortedListElement_t));
     fprintf(stdout, "%i\n", reqNum);
 
-    srand(time(NULL));
+    initLocks();
+
+
+    //add node
     for (i = 0; i < reqNum; i++)
       {
 	randSize = rand() % 10;
@@ -203,16 +243,17 @@ int main(int argc, char *argv[])
 	elem[i].key = randKey;
 	SortedList_insert(list, &elem[i]);
       }
-    perror("hi");
-        int sizeO = SortedList_length(list);
-        fprintf(stdout, "list size: %i\n", sizeO);
-	perror("what");
+
+    int sizeO = SortedList_length(list);
+    fprintf(stdout, "list size: %i\n", sizeO);
 
 
-    /*
+
+    
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     pthread_t *threads = malloc(threadNum * sizeof(pthread_t));
+    int* tids = malloc(threadNum * sizeof(int));
 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -222,7 +263,8 @@ int main(int argc, char *argv[])
 	//use list insert elements instead of threadAdd and count
 	//in func, gets list slenght
 	//looks upa nd dletes prev inserted keeys
-	rc = pthread_create(&threads[i], &attr, threadAdd, &count); 
+	tids[i] = i;
+	rc = pthread_create(&threads[i], &attr, listAdd, &count); 
 	if (rc) {
 	  fprintf(stderr, "ERROR: return code from pthread_create():%d\n", rc);
 	  exit(-1);
@@ -240,7 +282,7 @@ int main(int argc, char *argv[])
       }
     clock_gettime(CLOCK_MONOTONIC, &end);
 
-
+    /*
     
     long long numOp = threadNum * iterNum * 2;
     long long runTime = end.tv_nsec - start.tv_nsec;
