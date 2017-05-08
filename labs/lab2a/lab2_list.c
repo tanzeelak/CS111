@@ -17,7 +17,7 @@ int opt_yield = 0;
 int testAndSet = 0;
 char syncopt = NULL;
 SortedList_t* list; 
-SortedListElement_t* elem; 
+SortedListElement_t* elem;
 
 
 char *randstring(int length) {    
@@ -26,18 +26,18 @@ char *randstring(int length) {
   char *randomString;
 
   randomString = malloc(sizeof(char) * (length +1));
-
+  perror("hi");
   if (!randomString) {
     return (char*)0;
   }
-
+  perror("ho");
   unsigned int key = 0;
 
   for (int n = 0;n < length;n++) {            
     key = rand() % stringLen;          
     randomString[n] = string[key];
   }
-
+  perror("nah");
   randomString[length] = '\0';
 
   return randomString;
@@ -174,26 +174,42 @@ int main(int argc, char *argv[])
 	      lookFlag = 1;
 	  }
       }
-    if (syncFlag)
-      {
-      }
 
+
+
+    
     //INITIALIZE EMPTY LIST
     //init list
+
+    list = malloc(sizeof(SortedList_t));
+    list->key = NULL;
+    list->next = list;
+    list->prev = list;
+
+    
     int randSize = 0;
     char* randKey = NULL;
     int reqNum = threadNum * iterNum;
-    elem = malloc(reqNum * sizeof(SortedList_t));
+    elem = malloc(reqNum * sizeof(SortedListElement_t));
+    fprintf(stdout, "%i\n", reqNum);
+
+    srand(time(NULL));
     for (i = 0; i < reqNum; i++)
       {
-	//random string
-	randSize = rand();
+	randSize = rand() % 10;
+	fprintf(stdout, "%i\n", randSize);
 	randKey = randstring(randSize);
+	fprintf(stdout, "before insertion randkey: %s\n", randKey);
 	elem[i].key = randKey;
+	SortedList_insert(list, &elem[i]);
       }
+    perror("hi");
+        int sizeO = SortedList_length(list);
+        fprintf(stdout, "list size: %i\n", sizeO);
+	perror("what");
 
 
-
+    /*
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     pthread_t *threads = malloc(threadNum * sizeof(pthread_t));
@@ -222,8 +238,6 @@ int main(int argc, char *argv[])
 	  exit(-1);
 	}
       }
-    //checks that count of elements is 0
-
     clock_gettime(CLOCK_MONOTONIC, &end);
 
 
@@ -233,4 +247,7 @@ int main(int argc, char *argv[])
     long long aveTime = runTime/numOp;
     fprintf(stdout, "add-none,%i,%i,%i,%lli,%lli,%lli\n", threadNum, iterNum, numOp, runTime, aveTime, count);
 
+
+
+*/
 }
