@@ -5,7 +5,7 @@
 #include <string.h>
 #include <time.h>
 #include <string.h>
-
+#include <errno.h>
 
 #define print_err() do {if (errno) {fprintf(stderr, "error %s", strerr(errno)); exit(1);}} while(0)
 
@@ -21,6 +21,12 @@ int yieldFlag = 0;
 char tag[20];
 long long ns;
 
+
+void sysFailed(char* sysCall)
+{
+  fprintf(stderr, "%s failed: %s\n", sysCall, strerror(errno));
+  exit(1);
+}
 
 void add(long long *pointer, long long value) {
   long long sum = *pointer + value;
@@ -167,7 +173,8 @@ int main(int argc, char *argv[])
       {
       }
     determineTag();
-    clock_gettime(CLOCK_MONOTONIC, &start);
+
+    if (clock_gettime(CLOCK_MONOTONIC, &start) < 0)sysFailed("clock_gettime");
 
     pthread_t *threads = malloc(threadNum * sizeof(pthread_t));
 
@@ -193,7 +200,7 @@ int main(int argc, char *argv[])
 	}
       }
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    if(clock_gettime(CLOCK_MONOTONIC, &end) < 0) sysFailed("clock_gettime");
     ns = end.tv_sec - start.tv_sec;
     ns *=1000000000;
     ns += end.tv_nsec;
@@ -204,4 +211,5 @@ int main(int argc, char *argv[])
     long long aveTime = ns/numOp;
     fprintf(stdout, "%s,%i,%i,%lli,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, ns, aveTime, count);
 
+    exit(0);
 }
