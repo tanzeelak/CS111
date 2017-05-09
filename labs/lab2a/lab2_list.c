@@ -88,7 +88,7 @@ void* listAdd(void* offset)
   int i, added, deleted;
   SortedListElement_t *toDel;
   
-    fprintf(stderr, "offset: %d\n", *(int*)offset);
+  //    fprintf(stderr, "offset: %d\n", *(int*)offset);
   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
     {
       if (syncopt == 'm')
@@ -109,7 +109,7 @@ void* listAdd(void* offset)
 	}
     }
   added = SortedList_length(list);
-  fprintf(stderr, "added length: %d\n", added);
+  //  fprintf(stderr, "added length: %d\n", added);
 
   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
     {
@@ -134,7 +134,7 @@ void* listAdd(void* offset)
 	}
     }
   deleted = SortedList_length(list);
-  fprintf(stdout, "deleted length: %d\n", deleted);
+  //  fprintf(stdout, "deleted length: %d\n", deleted);
 
 }
 
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
     //init elements
     reqNum = threadNum * iterNum;
     elem = malloc(reqNum * sizeof(SortedListElement_t));
-    fprintf(stdout, "%i\n", reqNum);
+    //    fprintf(stdout, "%i\n", reqNum);
     offsetArr = malloc(threadNum *sizeof(int));
     
 
@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
 	tids[i] = i;
 	long long offset = i * iterNum;
 	offsetArr[i] = i * iterNum;
-	fprintf(stderr, "before adding offset: %d\n", offsetArr[i]);
+	//	fprintf(stderr, "before adding offset: %d\n", offsetArr[i]);
 	rc = pthread_create(&threads[i], &attr, listAdd, &offsetArr[i]); 
 
 	if (rc) {
