@@ -6,7 +6,7 @@
 #include <time.h>
 #include <string.h>
 #include "SortedList.h"
-
+#include <signal.h>
 #define print_err() do {if (errno) {fprintf(stderr, "error %s", strerr(errno)); exit(1);}} while(0)
 
 pthread_mutex_t count_mutex;
@@ -139,6 +139,12 @@ void* listAdd(void* offset)
 }
 
 
+void signal_callback_handler(int signum)
+{
+
+  fprintf(stderr,"Caught SIGSEGV %d\n", signum);
+  exit(1);
+}
 
 
 int main(int argc, char *argv[])
@@ -163,8 +169,8 @@ int main(int argc, char *argv[])
     pthread_attr_t attr;
     void *status;
     srand(time(NULL));    
-
-
+    
+    
     strcpy(tag,"list-");
     static struct option long_options[] = {
       {"threads", required_argument, 0, 't'},
@@ -275,6 +281,7 @@ int main(int argc, char *argv[])
 
     for (i = 0; i < threadNum; i++)
       {
+	signal(SIGSEGV, signal_callback_handler);
 	tids[i] = i;
 	long long offset = i * iterNum;
 	offsetArr[i] = i * iterNum;
@@ -297,6 +304,7 @@ int main(int argc, char *argv[])
 	}
       }
     clock_gettime(CLOCK_MONOTONIC, &end);
+    int isZero = !SortedList_length(list);
     
 
     
