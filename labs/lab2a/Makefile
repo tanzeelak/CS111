@@ -256,11 +256,14 @@ tests:
 graphs:
 	chmod +x lab2_add.gp
 	chmod +x lab2_add.gp
-	/usr/local/cs/bin/gnuplot lab2_add.gp
-	/usr/local/cs/bin/gnuplot lab2_list.gp
+	gnuplot lab2_add.gp
+	gnuplot lab2_list.gp
 
 clean:
 	@rm -f lab2_add lab2_list *.txt *.tar.gzw *.csv
 
 dist: 
 	@tar -zcvf lab2a-204577214.tar.gz SortedList.h SortedList.c lab2_add.c lab2_list.c lab2_add lab2_list Makefile README *.png *.gp *.csv
+
+
+
