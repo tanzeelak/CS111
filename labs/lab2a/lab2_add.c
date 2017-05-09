@@ -16,7 +16,7 @@ int threadNum = 1;
 int iterNum = 1;
 int opt_yield = 0;
 int testAndSet = 0;
-char syncopt = NULL;
+char syncopt;
 int yieldFlag = 0;
 char tag[20];
 long long ns;
