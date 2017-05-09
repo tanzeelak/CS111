@@ -1,35 +1,37 @@
-#define _GNU_SOURCE
 #include "SortedList.h"
 #include <pthread.h>
 #include <string.h>
+#include <time.h>
+#include <stdio.h>
 
 void SortedList_insert(SortedList_t *list, SortedListElement_t *element)
 {
-  if(list == NULL || element == NULL) { return; }
-  SortedListElement_t *curr = list->next;
-
-  while(curr != list)
+  if(list == NULL)
     {
+      return;
+    }
+  SortedListElement_t *p = list->next;
 
-      if(strcmp(element->key, curr->key) <= 0)
+  while(p != list)
+    {
+      if(strcmp(element->key, p->key) <= 0)
 	break;
-
-      curr  = curr->next;
+      p  = p->next;
     }
   if(opt_yield & INSERT_YIELD)
     sched_yield();
 
-
-  element->next = curr;
-  element->prev = curr->prev;
-  curr->prev->next = element;
-  curr->prev = element;
+  element->next = p;
+  element->prev = p->prev;
+  p->prev->next = element;
+  p->prev = element;
 }
 
 int SortedList_delete(SortedListElement_t *element)
 {
 
-  if(element == NULL) { return 1; }
+  if(element == NULL)
+      return 1;
 
   if(element->next->prev == element->prev->next)
     {
@@ -38,8 +40,7 @@ int SortedList_delete(SortedListElement_t *element)
 
       element->prev->next = element->next;
       element->next->prev = element->prev;
-      element->next = NULL;
-      element->prev = NULL;
+
       return 0;
     }
   return 1;
@@ -63,9 +64,9 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key)
 int SortedList_length(SortedList_t *list)
 {
   int count = 0;
-  if(list == NULL) 
-    { 
-      return -1; 
+  if(list == NULL)
+    {
+      return -1;
     }
   SortedListElement_t *curr = list->next;
   while(curr != list)

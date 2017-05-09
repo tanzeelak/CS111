@@ -19,6 +19,8 @@ int testAndSet = 0;
 char syncopt = NULL;
 int yieldFlag = 0;
 char tag[20];
+long long ns;
+
 
 void add(long long *pointer, long long value) {
   long long sum = *pointer + value;
@@ -125,7 +127,7 @@ int main(int argc, char *argv[])
     };
 
     int option_index = 0;
-    while((optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index)) != -1){
+    while((optParse = getopt_long(argc, argv, "t:i:y:s:", long_options, &option_index)) != -1){
       switch (optParse)
         {
         case 't':
@@ -192,11 +194,14 @@ int main(int argc, char *argv[])
       }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
-
+    ns = end.tv_sec - start.tv_sec;
+    ns *=1000000000;
+    ns += end.tv_nsec;
+    ns -= start.tv_nsec;
 
     long long numOp = threadNum * iterNum * 2;
-    long long runTime = end.tv_nsec - start.tv_nsec;
-    long long aveTime = runTime/numOp;
-    fprintf(stdout, "%s,%i,%i,%i,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, runTime, aveTime, count);
+    //    long long runTime = end.tv_nsec - start.tv_nsec;
+    long long aveTime = ns/numOp;
+    fprintf(stdout, "%s,%i,%i,%lli,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, ns, aveTime, count);
 
 }

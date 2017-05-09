@@ -24,6 +24,8 @@ int reqNum;
 int spin;
 int* offsetArr;
 char tag[30];
+long long ns;
+
 
 void initList(void)
 {
@@ -224,11 +226,11 @@ int main(int argc, char *argv[])
 	for (i = 0; i != '\0'; i++)
 	  {
 	    if (yieldopt[i] == 'i')
-	      opt_yield += INSERT_YIELD;
+	      opt_yield |= INSERT_YIELD;
 	    if (yieldopt[i] == 'd')
-	      opt_yield += DELETE_YIELD;
+	      opt_yield |= DELETE_YIELD;
 	    if (yieldopt[i] == 'l')
-	      opt_yield += LOOKUP_YIELD;
+	      opt_yield |= LOOKUP_YIELD;
 	  }
       }
     else 
@@ -304,13 +306,20 @@ int main(int argc, char *argv[])
 	}
       }
     clock_gettime(CLOCK_MONOTONIC, &end);
+    ns = end.tv_sec - start.tv_sec;
+    ns *=1000000000;
+    ns += end.tv_nsec;
+    ns -= start.tv_nsec;
+
+    
+
     int isZero = !SortedList_length(list);
     
 
     
     long long numOp = threadNum * iterNum * 3;
-    long long runTime = end.tv_nsec - start.tv_nsec;
-    long long aveTime = runTime/numOp;
-    fprintf(stdout, "%s,%i,%i,1,%i,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, runTime, aveTime, count);
+    //    long long runTime = end.tv_nsec - start.tv_nsec;
+    long long aveTime = ns/numOp;
+    fprintf(stdout, "%s,%i,%i,1,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, ns, aveTime);
 
 }
