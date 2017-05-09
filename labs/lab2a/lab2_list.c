@@ -7,6 +7,7 @@
 #include <string.h>
 #include "SortedList.h"
 #include <signal.h>
+#include <errno.h>
 #define print_err() do {if (errno) {fprintf(stderr, "error %s", strerr(errno)); exit(1);}} while(0)
 
 pthread_mutex_t count_mutex;
@@ -26,6 +27,12 @@ int* offsetArr;
 char tag[30];
 long long ns;
 
+
+void sysFailed(char* sysCall, int exitNum)
+{
+  fprintf(stderr, "%s failed: %s\n", sysCall, strerror(errno));
+  exit(exitNum);
+}
 
 void initList(void)
 {
@@ -246,12 +253,6 @@ int main(int argc, char *argv[])
 	strcat(tag,"none");
       }
 
-    //    fprintf(stderr, "TAG TAG TAG TAG TAG: %s\n\n", tag);
-    //adding to name
-
-
-
-    
     //INITIALIZE EMPTY LIST
     //init list
 
@@ -274,7 +275,7 @@ int main(int argc, char *argv[])
 	elem[i].key = randKey;
       }
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    if(clock_gettime(CLOCK_MONOTONIC, &start) < 0)sysFailed("clock_gettime",1);
     pthread_t *threads = malloc(threadNum * sizeof(pthread_t));
     int* tids = malloc(threadNum * sizeof(int));
 
@@ -292,7 +293,7 @@ int main(int argc, char *argv[])
 
 	if (rc) {
 	  fprintf(stderr, "ERROR: return code from pthread_create():%d\n", rc);
-	  exit(-1);
+	  exit(2);
 	}
 	
       }
@@ -302,10 +303,10 @@ int main(int argc, char *argv[])
 	rc = pthread_join(threads[i], &status);
 	if (rc) {
 	  fprintf(stderr, "ERROR: return code from pthread_join() is %d\n", rc);
-	  exit(-1);
+	  exit(2);
 	}
       }
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    if (clock_gettime(CLOCK_MONOTONIC, &end) < 0)sysFailed("clock_gettime",1);
     ns = end.tv_sec - start.tv_sec;
     ns *=1000000000;
     ns += end.tv_nsec;

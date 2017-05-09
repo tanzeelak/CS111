@@ -256,8 +256,8 @@ tests:
 graphs:
 	chmod +x lab2_add.gp
 	chmod +x lab2_add.gp
-	gnuplot lab2_add.gp
-	gnuplot lab2_list.gp
+	/usr/local/cs/bin/gnuplot lab2_add.gp
+	/usr/local/cs/bin/gnuplot lab2_list.gp
 
 clean:
 	@rm -f lab2_add lab2_list *.txt *.tar.gzw *.csv

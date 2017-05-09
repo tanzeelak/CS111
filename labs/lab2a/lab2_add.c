@@ -22,10 +22,10 @@ char tag[20];
 long long ns;
 
 
-void sysFailed(char* sysCall)
+void sysFailed(char* sysCall, int exitNum)
 {
   fprintf(stderr, "%s failed: %s\n", sysCall, strerror(errno));
-  exit(1);
+  exit(exitNum);
 }
 
 void add(long long *pointer, long long value) {
@@ -57,7 +57,6 @@ void* threadAdd(void* ptr)
 
       if (syncopt == 'm')
 	{
-
 	  pthread_mutex_lock(&count_mutex);
 	  add(counter, 1);
 	  add(counter, -1);
@@ -174,7 +173,7 @@ int main(int argc, char *argv[])
       }
     determineTag();
 
-    if (clock_gettime(CLOCK_MONOTONIC, &start) < 0)sysFailed("clock_gettime");
+    if (clock_gettime(CLOCK_MONOTONIC, &start) < 0)sysFailed("clock_gettime",1);
 
     pthread_t *threads = malloc(threadNum * sizeof(pthread_t));
 
@@ -186,7 +185,7 @@ int main(int argc, char *argv[])
 	rc = pthread_create(&threads[i], &attr, threadAdd, &count);
 	if (rc) {
 	  fprintf(stderr, "ERROR: return code from pthread_create():%d\n", rc);
-	  exit(-1);
+	  exit(2);
 	}
 	
       }
@@ -196,11 +195,11 @@ int main(int argc, char *argv[])
 	rc = pthread_join(threads[i], &status);
 	if (rc) {
 	  fprintf(stderr, "ERROR: return code from pthread_join() is %d\n", rc);
-	  exit(-1);
+	  exit(2);
 	}
       }
 
-    if(clock_gettime(CLOCK_MONOTONIC, &end) < 0) sysFailed("clock_gettime");
+    if(clock_gettime(CLOCK_MONOTONIC, &end) < 0) sysFailed("clock_gettime",1);
     ns = end.tv_sec - start.tv_sec;
     ns *=1000000000;
     ns += end.tv_nsec;
