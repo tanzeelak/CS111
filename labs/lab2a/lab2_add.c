@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 	  syncopt = optarg[0];
 	  break;
         default:
-          fprintf(stderr, "Proper usage of options: --port=portnum, --encrypt=filename\n");
+          fprintf(stderr, "Proper usage of options: --threads=#threads, --iterations=#iterations, --yield, --sync=test\n");
           exit(1);
         }
     }
