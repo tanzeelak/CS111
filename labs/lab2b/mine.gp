@@ -28,10 +28,7 @@
 set terminal png
 set datafile separator ","
 
-
-# unset the kinky x axis
-unset xtics
-set xtics
+# how many threads/iterations we can run without failure (w/o yielding)
 
 set title "List-4: Scalability of synchronization mechanisms"
 set xlabel "Threads"
@@ -43,7 +40,7 @@ set logscale y
 set output 'lab2b-1.png'
 set key left top
 plot \
-     "< grep -e 'list-none-m,[0-9]*,1000,' lab2_list.csv" using ($2):($7)/(4*($3)) \
+     "< grep -e 'list-none-m,[0-9]*,1000,' lab2_list.csv" using ($2):(1000000000/($7)) \
      title '(adjusted) list w/mutex' with linespoints lc rgb 'blue', \
-     "< grep -e 'list-none-s,[0-9]*,1000,' lab2_list.csv" using ($2):($7)/(4*($3)) \
+     "< grep -e 'list-none-s,[0-9]*,1000,' lab2_list.csv" using ($2):(1000000000/($7)) \
      title '(adjusted) list w/spin-lock' with linespoints lc rgb 'green'

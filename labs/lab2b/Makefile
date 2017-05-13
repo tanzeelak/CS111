@@ -1,4 +1,4 @@
-#NAME: Tanzeela Khan
+#Name--: Tanzeela Khan
 #EMAIL: tanzeelakhan@g.ucla.edu
 #ID: 204577214
 
@@ -8,7 +8,27 @@ CFLAGS = -g
 
 build:
 	@gcc -g -pthread lab2_add.c -o lab2_add
-	@gcc -pthread -lrt  -std=gnu99 -o lab2_list SortedList.c lab2_list.c
+	@gcc -pthread -lrt -std=gnu99 -o lab2_list SortedList.c lab2_list.c
+
+lab2_list: lab2_list.c SortedList.c
+	gcc -std=gnu99  -lpthread -o lab2_list -g -L ~/lib/ -lprofiler lab2_list.c SortedList.c
+
+profile1: lab2_list Makefile
+	-rm -rf ./raw.gperf
+	pprof --text ./local.raw
+	export LD_PRELOAD=/u/cs/ugrad/tanzeela/lib/libprofiler.so.0 
+	export CPUPROFILE=./raw.gperf 
+	./lab2_list --threads=12 --iterations=1000 
+	pprof --text ./lab2_list ./raw.gperf > profile 
+	pprof --list=listAdd ./lab2_list ./raw.gperf >> profile.out
+	rm -f ./raw.gperf
+
+profile: lab2_list Makefile
+	-rm -rf ./raw.gperf
+	LD_PRELOAD=/u/cs/ugrad/tanzeela/lib/libprofiler.so.0 CPUPROFILE=raw.gperf ./lab2_list --threads=12 --iterations=1000
+	pprof --text ./lab2_list ./raw.gperf > profile.gperf 
+	pprof --list=listAdd ./lab2_list ./raw.gperf >> profile.gperf
+	rm -f ./raw.gperf
 
 tests:
 	rm -f *.txt *.tar.gzw

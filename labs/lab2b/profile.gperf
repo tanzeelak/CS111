@@ -1,0 +1,144 @@
+Total: 106 samples
+      76  71.7%  71.7%       76  71.7% __strcmp_sse42
+      15  14.2%  85.8%       56  52.8% SortedList_insert
+      12  11.3%  97.2%       50  47.2% SortedList_lookup
+       3   2.8% 100.0%        3   2.8% _init
+       0   0.0% 100.0%      106 100.0% __clone
+       0   0.0% 100.0%      106 100.0% listAdd
+       0   0.0% 100.0%      106 100.0% start_thread
+ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/lab2_list.c
+     0    106 Total samples (flat / cumulative)
+     .      .   90:   }while(__sync_val_compare_and_swap(pointer, oldValue, sum) != oldValue);
+     .      .   91: 
+     .      .   92: }
+     .      .   93: 
+     .      .   94: void* listAdd(void* offset)
+---
+     .      .   95: {
+     .      .   96: 
+     .      .   97:   int i, added, deleted;
+     .      .   98:   SortedListElement_t *toDel;
+     .      .   99:   
+     .      .  100:   //    fprintf(stderr, "offset: %d\n", *(int*)offset);
+     .      .  101:   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
+     .      .  102:     {
+     .      .  103:       if (syncopt == 'm')
+     .      .  104: 	{
+     .      .  105: 	  pthread_mutex_lock(&count_mutex);
+     .      .  106: 	  SortedList_insert(list, &elem[i]);
+     .      .  107: 	  pthread_mutex_unlock(&count_mutex);
+     .      .  108: 	}
+     .      .  109:       else if (syncopt == 's')
+     .      .  110: 	{
+     .      .  111:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+     .      .  112: 	  SortedList_insert(list, &elem[i]);
+     .      .  113: 	  __sync_lock_release(&testAndSet);
+     .      .  114: 	}
+     .      .  115:       else
+     .      .  116: 	{
+     .     56  117: 	  SortedList_insert(list, &elem[i]);
+     .      .  118: 	}
+     .      .  119:     }
+     .      .  120:   added = SortedList_length(list);
+     .      .  121:   //  fprintf(stderr, "added length: %d\n", added);
+     .      .  122: 
+     .      .  123:   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
+     .      .  124:     {
+     .      .  125:       if (syncopt == 'm')
+     .      .  126: 	{
+     .      .  127: 	  pthread_mutex_lock(&count_mutex);
+     .      .  128: 	  toDel = SortedList_lookup(list, elem[i].key);
+     .      .  129: 	  SortedList_delete(&elem[i]);
+     .      .  130: 	  pthread_mutex_unlock(&count_mutex);
+     .      .  131: 	}
+     .      .  132:       else if (syncopt == 's')
+     .      .  133: 	{
+     .      .  134:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+     .      .  135: 	  toDel = SortedList_lookup(list, elem[i].key);
+     .      .  136: 	  SortedList_delete(&elem[i]);
+     .      .  137: 	  __sync_lock_release(&testAndSet);
+     .      .  138: 	}
+     .      .  139:       else
+     .      .  140: 	{
+     .     50  141: 	  toDel = SortedList_lookup(list, elem[i].key);
+     .      .  142: 	  SortedList_delete(&elem[i]);
+     .      .  143: 	}
+     .      .  144:     }
+     .      .  145:   deleted = SortedList_length(list);
+     .      .  146:   //  fprintf(stdout, "deleted length: %d\n", deleted);
+     .      .  147: 
+     .      .  148: }
+---
+     .      .  149: 
+     .      .  150: 
+     .      .  151: void signal_callback_handler(int signum)
+     .      .  152: {
+     .      .  153: 
+ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/lab2_list.c
+     0    106 Total samples (flat / cumulative)
+     .      .   90:   }while(__sync_val_compare_and_swap(pointer, oldValue, sum) != oldValue);
+     .      .   91: 
+     .      .   92: }
+     .      .   93: 
+     .      .   94: void* listAdd(void* offset)
+---
+     .      .   95: {
+     .      .   96: 
+     .      .   97:   int i, added, deleted;
+     .      .   98:   SortedListElement_t *toDel;
+     .      .   99:   
+     .      .  100:   //    fprintf(stderr, "offset: %d\n", *(int*)offset);
+     .      .  101:   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
+     .      .  102:     {
+     .      .  103:       if (syncopt == 'm')
+     .      .  104: 	{
+     .      .  105: 	  pthread_mutex_lock(&count_mutex);
+     .      .  106: 	  SortedList_insert(list, &elem[i]);
+     .      .  107: 	  pthread_mutex_unlock(&count_mutex);
+     .      .  108: 	}
+     .      .  109:       else if (syncopt == 's')
+     .      .  110: 	{
+     .      .  111:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+     .      .  112: 	  SortedList_insert(list, &elem[i]);
+     .      .  113: 	  __sync_lock_release(&testAndSet);
+     .      .  114: 	}
+     .      .  115:       else
+     .      .  116: 	{
+     .     56  117: 	  SortedList_insert(list, &elem[i]);
+     .      .  118: 	}
+     .      .  119:     }
+     .      .  120:   added = SortedList_length(list);
+     .      .  121:   //  fprintf(stderr, "added length: %d\n", added);
+     .      .  122: 
+     .      .  123:   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
+     .      .  124:     {
+     .      .  125:       if (syncopt == 'm')
+     .      .  126: 	{
+     .      .  127: 	  pthread_mutex_lock(&count_mutex);
+     .      .  128: 	  toDel = SortedList_lookup(list, elem[i].key);
+     .      .  129: 	  SortedList_delete(&elem[i]);
+     .      .  130: 	  pthread_mutex_unlock(&count_mutex);
+     .      .  131: 	}
+     .      .  132:       else if (syncopt == 's')
+     .      .  133: 	{
+     .      .  134:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+     .      .  135: 	  toDel = SortedList_lookup(list, elem[i].key);
+     .      .  136: 	  SortedList_delete(&elem[i]);
+     .      .  137: 	  __sync_lock_release(&testAndSet);
+     .      .  138: 	}
+     .      .  139:       else
+     .      .  140: 	{
+     .     50  141: 	  toDel = SortedList_lookup(list, elem[i].key);
+     .      .  142: 	  SortedList_delete(&elem[i]);
+     .      .  143: 	}
+     .      .  144:     }
+     .      .  145:   deleted = SortedList_length(list);
+     .      .  146:   //  fprintf(stdout, "deleted length: %d\n", deleted);
+     .      .  147: 
+     .      .  148: }
+---
+     .      .  149: 
+     .      .  150: 
+     .      .  151: void signal_callback_handler(int signum)
+     .      .  152: {
+     .      .  153: 
