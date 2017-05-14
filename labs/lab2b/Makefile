@@ -7,7 +7,6 @@ CFLAGS = -g
 
 
 build:
-	@gcc -g -pthread lab2_add.c -o lab2_add
 	@gcc -pthread -lrt -std=gnu99 -o lab2_list SortedList.c lab2_list.c
 
 lab2_list: lab2_list.c SortedList.c
@@ -162,14 +161,14 @@ tests:
 	./lab2_list --threads=24 --iterations=1000 --sync=s >> lab2_list.csv
 
 graphs:
-	chmod +x mine.gp
-	/usr/local/cs/bin/gnuplot mine.gp
+	chmod +x lab2_list.gp
+	/usr/local/cs/bin/gnuplot lab2_list.gp
 
 clean:
-	@rm -f lab2_add lab2_list *.txt *.tar.gzw *.csv
+	@rm -f lab2_list *.txt *.tar.gzw *.csv
 
 dist: 
-	@tar -zcvf lab2a-204577214.tar.gz SortedList.h SortedList.c lab2_add.c lab2_list.c lab2_add lab2_list Makefile README *.png *.gp *.csv
+	@tar -zcvf lab2a-204577214.tar.gz SortedList.h SortedList.c lab2_list.c lab2_list Makefile README *.png *.gp *.csv
 
 
 
