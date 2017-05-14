@@ -30,7 +30,7 @@ set datafile separator ","
 
 # how many threads/iterations we can run without failure (w/o yielding)
 
-set title "List-4: Scalability of synchronization mechanisms"
+set title "List-1: Scalability of synchronization mechanisms"
 set xlabel "Threads"
 set logscale x 2
 unset xrange
@@ -44,3 +44,20 @@ plot \
      title '(adjusted) list w/mutex' with linespoints lc rgb 'blue', \
      "< grep -e 'list-none-s,[0-9]*,1000,' lab2_list.csv" using ($2):(1000000000/($7)) \
      title '(adjusted) list w/spin-lock' with linespoints lc rgb 'green'
+
+set title "List-2: eh"
+set xlabel "Threads"
+set logscale x 2
+unset xrange
+set xrange [0.75:]
+set ylabel "Length-adjusted cost per operation(ns)"
+set logscale y
+set output 'lab2b-2.png'
+set key left top
+plot \
+     "< grep -e 'list-none-m,[0-9]*,1000,' lab2_list.csv" using ($2):($7) \
+     title '(adjusted) list w/completion' with linespoints lc rgb 'blue', \
+     "< grep -e 'list-none-m,[0-9]*,1000,' lab2_list.csv" using ($2):($8) \
+     title '(adjusted) list w/waitfor' with linespoints lc rgb 'green'
+
+

@@ -26,7 +26,8 @@ int spin;
 int* offsetArr;
 char tag[30];
 long long ns;
-
+struct timespec start_lock, end_lock;
+long long mutex_time = 0;
 
 void sysFailed(char* sysCall, int exitNum)
 {
@@ -94,8 +95,7 @@ void add_c(long long *pointer, long long value) {
 void* listAdd(void* offset)
 {
 
-  long mutex_time = 0;
-  struct timespec start, end;
+
   int i, added, deleted;
   SortedListElement_t *toDel;
   
@@ -105,27 +105,28 @@ void* listAdd(void* offset)
       if (syncopt == 'm')
 	{
 	  
-	  clock_gettime(CLOCK_MONOTONIC, &start);
+	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
 
 	  pthread_mutex_lock(&count_mutex);
-	  clock_gettime(CLOCK_MONOTONIC, &end);
+	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
+	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
 	  SortedList_insert(list, &elem[i]);
 	  pthread_mutex_unlock(&count_mutex);
 
-	  mutex_time += 1000000000L * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
 	}
       else if (syncopt == 's')
 	{
 
-	  clock_gettime(CLOCK_MONOTONIC, &start);
+	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
 
   	  while(__sync_lock_test_and_set(&testAndSet, 1));
-	  clock_gettime(CLOCK_MONOTONIC, &end);
+
+	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
+	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
 	  SortedList_insert(list, &elem[i]);
 	  __sync_lock_release(&testAndSet);
-	  mutex_time += 1000000000L * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
 	}
       else
 	{
@@ -139,30 +140,29 @@ void* listAdd(void* offset)
     {
       if (syncopt == 'm')
 	{
-	  clock_gettime(CLOCK_MONOTONIC, &start);
+	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
 
 	  pthread_mutex_lock(&count_mutex);
-	  clock_gettime(CLOCK_MONOTONIC, &end);
+	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
+	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
 	  toDel = SortedList_lookup(list, elem[i].key);
 	  SortedList_delete(&elem[i]);
 	  pthread_mutex_unlock(&count_mutex);
 
-	  mutex_time += 1000000000L * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
 	}
       else if (syncopt == 's')
 	{
-	  clock_gettime(CLOCK_MONOTONIC, &start);
+	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
 
   	  while(__sync_lock_test_and_set(&testAndSet, 1));
-	  clock_gettime(CLOCK_MONOTONIC, &end);
-
+	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
+	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
 	  toDel = SortedList_lookup(list, elem[i].key);
 	  SortedList_delete(&elem[i]);
 	  __sync_lock_release(&testAndSet);
 
-	  mutex_time += 1000000000L * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
 
 	}
       else
@@ -350,6 +350,7 @@ int main(int argc, char *argv[])
     long long numOp = threadNum * iterNum * 3;
     //    long long runTime = end.tv_nsec - start.tv_nsec;
     long long aveTime = ns/numOp;
-    fprintf(stdout, "%s,%i,%i,1,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, ns, aveTime);
+    long long aveMutex = mutex_time/numOp;
+    fprintf(stdout, "%s,%i,%i,1,%lli,%lli,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, ns, aveTime, aveMutex, mutex_time);
 
 }
