@@ -25,8 +25,8 @@ profile1: lab2_list Makefile
 profile: lab2_list Makefile
 	-rm -rf ./raw.gperf
 	LD_PRELOAD=/u/cs/ugrad/tanzeela/lib/libprofiler.so.0 CPUPROFILE=raw.gperf ./lab2_list --threads=12 --iterations=1000
-	pprof --text ./lab2_list ./raw.gperf > profile.gperf 
-	pprof --list=listAdd ./lab2_list ./raw.gperf >> profile.gperf
+	pprof --text ./lab2_list ./raw.gperf > profile.out
+	pprof --list=listAdd ./lab2_list ./raw.gperf >> profile.out
 	rm -f ./raw.gperf
 
 tests:
@@ -163,7 +163,4 @@ clean:
 	@rm -f lab2_list *.txt *.tar.gzw *.csv
 
 dist: 
-	@tar -zcvf lab2a-204577214.tar.gz SortedList.h SortedList.c lab2_list.c lab2_list Makefile README *.png *.gp *.csv
-
-
-
+	@tar -zcvf lab2b-204577214.tar.gz lab2_list.c SortedList.c SortedList.h lab2b_list.csv lab2_list.gp profile.out *.png Makefile README

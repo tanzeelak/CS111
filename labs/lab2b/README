@@ -2,16 +2,12 @@ NAME: Tanzeela Khan
 EMAIL: tanzeelakhan@g.ucla.edu
 ID: 204577214
 
----NOTE---
-
-I am taking my second slip day for this lab which I am turning in one day late. 
-
-
 ---FILES---
 
 lab2_add.c: Uses pthreads to add to a shared variable. Allows for enabling of different locks to stop race conditions.
 SortedList.h: Supplied header file that describes the interfaces for the sorted linked list.
 SortedList.c: Implements functions in Sorted List Header field to insert, delete, and lookup in the doubly linked list. 
+Makefile: Builds deliverable wtih tests, profile, grahps, dist, and clean. 
 lab2_list.c: Uses pthreads to add to a shared Sorted list. Allows for enabling of different locks to stop race conditions. 
 lab2_add.csv: generated graph input from Makefile tests. lab2_add.gp uses this data to plot on gnuplot.
 lab2_list.csv: generated graph input from Makefile tests. lab2_list.gp uses this data to plot on gnuplot.

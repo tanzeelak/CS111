@@ -97,15 +97,12 @@ void* listAdd(void* offset)
       unsigned int listId = hash(elem[i].key) % listNum;
       if (syncopt == 'm')
 	{
-	  
 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
 	  pthread_mutex_lock(&count_mutex);
 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
-	  //	  fprintf(stderr, "key: %s, hashid: %u, offset: %d\n", elem[i].key, listId, *(int*)offset);
 	  SortedList_insert(&list[listId], &elem[i]);
-
 	  pthread_mutex_unlock(&count_mutex);
 
 	}
@@ -129,10 +126,9 @@ void* listAdd(void* offset)
     }
   if(SortedList_length(list) == -1)
     {
-      perror("List is corrupted");
+      fprintf(stderr, "List is corrupted.\n");
       exit(2);
     }
-  //  fprintf(stderr, "added length: %d\n", added);
 
   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
     {
@@ -148,7 +144,7 @@ void* listAdd(void* offset)
 
 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
 	    {
-	      perror("Element not found in lookup");
+	      fprintf(stderr,"Element not found in lookup.\n");
 	      exit(2);
 	    }
 
@@ -166,7 +162,7 @@ void* listAdd(void* offset)
 
 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
 	    {
-	      perror("Element not found in lookup");
+	      fprintf(stderr,"Element not found in lookup.\n");
 	      exit(2);
 	    }
 	  SortedList_delete(&elem[i]);
@@ -178,7 +174,7 @@ void* listAdd(void* offset)
 	{
 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
 	    {
-	      perror("Element not found in lookup");
+	      fprintf(stderr,"Element not found in lookup.\n");
 	      exit(2);
 	    }
 	  SortedList_delete(&elem[i]);
@@ -186,17 +182,14 @@ void* listAdd(void* offset)
     }
   if (SortedList_length(list) == -1)
     {
-      perror("List is corrupted");
+      fprintf(stderr,"List is corrupted\n");
       exit(2);
     }
-  //  fprintf(stdout, "deleted length: %d\n", deleted);
-
 }
 
 
 void signal_callback_handler(int signum)
 {
-
   fprintf(stderr,"Caught SIGSEGV %d\n", signum);
   exit(1);
 }
@@ -282,7 +275,6 @@ int main(int argc, char *argv[])
 	strcat(tag, yieldopt); 
 	strcat(tag,"-");
 	opt_yield = 1;
-	//	fprintf(stderr, "opt_yield: %i", opt_yield);
 	for (i = 0; i != '\0'; i++)
 	  {
 	    if (yieldopt[i] == 'i')
@@ -345,7 +337,6 @@ int main(int argc, char *argv[])
 	tids[i] = i;
 	long long offset = i * iterNum;
 	offsetArr[i] = i * iterNum;
-	//	fprintf(stderr, "before adding offset: %d\n", offsetArr[i]);
 	rc = pthread_create(&threads[i], &attr, listAdd, &offsetArr[i]); 
 
 	if (rc) {
@@ -370,7 +361,6 @@ int main(int argc, char *argv[])
 
     int isZero = !SortedList_length(list);
     long long numOp = threadNum * iterNum * 3;
-    //    long long runTime = end.tv_nsec - start.tv_nsec;
     long long aveTime = ns/numOp;
     long long aveMutex = mutex_time/numOp;
     fprintf(stdout, "%s,%i,%i,%i,%lli,%lli,%lli,%lli\n", tag,threadNum, iterNum, listNum, numOp, ns, aveTime, aveMutex);

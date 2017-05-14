@@ -37,7 +37,7 @@ unset xrange
 set xrange [0.75:]
 set ylabel "Length-adjusted cost per operation(ns)"
 set logscale y
-set output 'lab2b-1.png'
+set output 'lab2b_1.png'
 set key left top
 plot \
      "< grep -e 'list-none-m,[0-9]*,1000,' lab2_list.csv" using ($2):(1000000000/($7)) \
@@ -52,7 +52,7 @@ unset xrange
 set xrange [0.75:]
 set ylabel "Length-adjusted cost per operation(ns)"
 set logscale y
-set output 'lab2b-2.png'
+set output 'lab2b_2.png'
 set key left top
 plot \
      "< grep -e 'list-none-m,[0-9]*,1000,' lab2_list.csv" using ($2):($7) \
@@ -67,7 +67,7 @@ set logscale x 2
 set xrange [0.75:]
 set ylabel "Successful Iterations"
 set logscale y 10
-set output 'lab2b-3.png'
+set output 'lab2b_3.png'
 plot \
      "< grep 'list-id-none,' lab2_list.csv" using ($2):($3) \
      with points lc rgb "red" title "unprotected", \
@@ -81,7 +81,7 @@ set xlabel "Number of thraeds"
 set logscale x 2
 set ylabel "Througput"
 set logscale y 10
-set output 'lab2b-4.png'
+set output 'lab2b_4.png'
 plot \
      "< grep 'list-none-m,.*,1000,1,' lab2_list.csv" using ($2):(1000000000/($7)) \
      	title '1 list' with linespoints lc rgb 'red', \
@@ -97,7 +97,7 @@ set xlabel "Number of thraeds"
 set logscale x 2
 set ylabel "Througput"
 set logscale y 10
-set output 'lab2b-5.png'
+set output 'lab2b_5.png'
 plot \
      "< grep 'list-none-s,.*,1000,1,' lab2_list.csv" using ($2):(1000000000/($7)) \
      	title '1 list' with linespoints lc rgb 'red', \
