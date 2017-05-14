@@ -244,6 +244,7 @@ int main(int argc, char *argv[])
 	case 'l':
 	  listFlag = 1;
 	  listopt = optarg;
+	  break;
         default:
           fprintf(stderr, "Proper usage of options: --threads=#threads, --iterations=#iterations, --yield=location, --sync=test\n");
           exit(1);
