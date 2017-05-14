@@ -94,6 +94,8 @@ void add_c(long long *pointer, long long value) {
 void* listAdd(void* offset)
 {
 
+  long mutex_time = 0;
+  struct timespec start, end;
   int i, added, deleted;
   SortedListElement_t *toDel;
   
@@ -102,15 +104,28 @@ void* listAdd(void* offset)
     {
       if (syncopt == 'm')
 	{
+	  
+	  clock_gettime(CLOCK_MONOTONIC, &start);
+
 	  pthread_mutex_lock(&count_mutex);
+	  clock_gettime(CLOCK_MONOTONIC, &end);
+
 	  SortedList_insert(list, &elem[i]);
 	  pthread_mutex_unlock(&count_mutex);
+
+	  mutex_time += 1000000000L * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
 	}
       else if (syncopt == 's')
 	{
+
+	  clock_gettime(CLOCK_MONOTONIC, &start);
+
   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+	  clock_gettime(CLOCK_MONOTONIC, &end);
+
 	  SortedList_insert(list, &elem[i]);
 	  __sync_lock_release(&testAndSet);
+	  mutex_time += 1000000000L * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
 	}
       else
 	{
@@ -124,17 +139,31 @@ void* listAdd(void* offset)
     {
       if (syncopt == 'm')
 	{
+	  clock_gettime(CLOCK_MONOTONIC, &start);
+
 	  pthread_mutex_lock(&count_mutex);
+	  clock_gettime(CLOCK_MONOTONIC, &end);
+
 	  toDel = SortedList_lookup(list, elem[i].key);
 	  SortedList_delete(&elem[i]);
 	  pthread_mutex_unlock(&count_mutex);
+
+	  mutex_time += 1000000000L * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
 	}
       else if (syncopt == 's')
 	{
+	  clock_gettime(CLOCK_MONOTONIC, &start);
+
   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+	  clock_gettime(CLOCK_MONOTONIC, &end);
+
+
 	  toDel = SortedList_lookup(list, elem[i].key);
 	  SortedList_delete(&elem[i]);
 	  __sync_lock_release(&testAndSet);
+
+	  mutex_time += 1000000000L * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
+
 	}
       else
 	{
