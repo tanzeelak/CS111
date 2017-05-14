@@ -126,7 +126,7 @@ void* listAdd(void* offset)
     }
   if(SortedList_length(list) == -1)
     {
-      fprintf(stderr, "List is corrupted.\n");
+      fprintf(stderr, "List is corrupted\n");
       exit(2);
     }
 
@@ -182,7 +182,7 @@ void* listAdd(void* offset)
     }
   if (SortedList_length(list) == -1)
     {
-      fprintf(stderr,"List is corrupted\n");
+      fprintf(stderr,"List is corrupted.\n");
       exit(2);
     }
 }

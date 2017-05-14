@@ -1,17 +1,15 @@
-Total: 97 samples
-      75  77.3%  77.3%       75  77.3% __strcmp_sse42
-      12  12.4%  89.7%       55  56.7% SortedList_insert
-       8   8.2%  97.9%       41  42.3% SortedList_lookup
-       1   1.0%  99.0%        1   1.0% _init
-       1   1.0% 100.0%        1   1.0% do_lookup_x
-       0   0.0% 100.0%       97 100.0% __clone
-       0   0.0% 100.0%        1   1.0% _dl_fixup
-       0   0.0% 100.0%        1   1.0% _dl_lookup_symbol_x
-       0   0.0% 100.0%        1   1.0% _dl_runtime_resolve
-       0   0.0% 100.0%       96  99.0% listAdd
-       0   0.0% 100.0%       97 100.0% start_thread
+Total: 5548 samples
+    5221  94.1%  94.1%     5548 100.0% listAdd
+     183   3.3%  97.4%      231   4.2% SortedList_lookup
+     113   2.0%  99.4%      113   2.0% __strcmp_sse42
+      24   0.4%  99.9%       95   1.7% SortedList_insert
+       6   0.1% 100.0%        6   0.1% _init
+       1   0.0% 100.0%        1   0.0% 0x00007ffc975b5986
+       0   0.0% 100.0%        1   0.0% __clock_gettime
+       0   0.0% 100.0%     5548 100.0% __clone
+       0   0.0% 100.0%     5548 100.0% start_thread
 ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/lab2_list.c
-     0     96 Total samples (flat / cumulative)
+  5221   5548 Total samples (flat / cumulative)
      .      .   86: 
      .      .   87:   return randomString;
      .      .   88: }
@@ -39,24 +37,24 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  109:       else if (syncopt == 's')
      .      .  110: 	{
      .      .  111: 
-     .      .  112: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
+     .      1  112: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
      .      .  113: 
-     .      .  114:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+  1565   1565  114:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
      .      .  115: 
      .      .  116: 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
-     .      .  117: 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
+     1      1  117: 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
      .      .  118: 
-     .      .  119: 	  SortedList_insert(&list[listId], &elem[i]);
+     .     95  119: 	  SortedList_insert(&list[listId], &elem[i]);
      .      .  120: 	  __sync_lock_release(&testAndSet);
      .      .  121: 	}
      .      .  122:       else
      .      .  123: 	{
-     .     55  124: 	  SortedList_insert(&list[listId], &elem[i]);
+     .      .  124: 	  SortedList_insert(&list[listId], &elem[i]);
      .      .  125: 	}
      .      .  126:     }
      .      .  127:   if(SortedList_length(list) == -1)
      .      .  128:     {
-     .      .  129:       fprintf(stderr, "List is corrupted.");
+     .      .  129:       fprintf(stderr, "List is corrupted\n");
      .      .  130:       exit(2);
      .      .  131:     }
      .      .  132: 
@@ -74,7 +72,7 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  144: 
      .      .  145: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
      .      .  146: 	    {
-     .      .  147: 	      fprintf(stderr,"Element not found in lookup");
+     .      .  147: 	      fprintf(stderr,"Element not found in lookup.\n");
      .      .  148: 	      exit(2);
      .      .  149: 	    }
      .      .  150: 
@@ -86,13 +84,13 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  156: 	{
      .      .  157: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
      .      .  158: 
-     .      .  159:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+  3655   3655  159:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
      .      .  160: 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
      .      .  161: 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
      .      .  162: 
-     .      .  163: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
+     .    231  163: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
      .      .  164: 	    {
-     .      .  165: 	      fprintf(stderr,"Element not found in lookup");
+     .      .  165: 	      fprintf(stderr,"Element not found in lookup.\n");
      .      .  166: 	      exit(2);
      .      .  167: 	    }
      .      .  168: 	  SortedList_delete(&elem[i]);
@@ -102,9 +100,9 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  172: 	}
      .      .  173:       else
      .      .  174: 	{
-     .     41  175: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
+     .      .  175: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
      .      .  176: 	    {
-     .      .  177: 	      fprintf(stderr,"Element not found in lookup");
+     .      .  177: 	      fprintf(stderr,"Element not found in lookup.\n");
      .      .  178: 	      exit(2);
      .      .  179: 	    }
      .      .  180: 	  SortedList_delete(&elem[i]);
@@ -112,7 +110,7 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  182:     }
      .      .  183:   if (SortedList_length(list) == -1)
      .      .  184:     {
-     .      .  185:       fprintf(stderr,"List is corrupted\n");
+     .      .  185:       fprintf(stderr,"List is corrupted.\n");
      .      .  186:       exit(2);
      .      .  187:     }
      .      .  188: }
@@ -123,7 +121,7 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  192: {
      .      .  193:   fprintf(stderr,"Caught SIGSEGV %d\n", signum);
 ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/lab2_list.c
-     0     96 Total samples (flat / cumulative)
+  5221   5548 Total samples (flat / cumulative)
      .      .   86: 
      .      .   87:   return randomString;
      .      .   88: }
@@ -151,24 +149,24 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  109:       else if (syncopt == 's')
      .      .  110: 	{
      .      .  111: 
-     .      .  112: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
+     .      1  112: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
      .      .  113: 
-     .      .  114:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+  1565   1565  114:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
      .      .  115: 
      .      .  116: 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
-     .      .  117: 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
+     1      1  117: 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
      .      .  118: 
-     .      .  119: 	  SortedList_insert(&list[listId], &elem[i]);
+     .     95  119: 	  SortedList_insert(&list[listId], &elem[i]);
      .      .  120: 	  __sync_lock_release(&testAndSet);
      .      .  121: 	}
      .      .  122:       else
      .      .  123: 	{
-     .     55  124: 	  SortedList_insert(&list[listId], &elem[i]);
+     .      .  124: 	  SortedList_insert(&list[listId], &elem[i]);
      .      .  125: 	}
      .      .  126:     }
      .      .  127:   if(SortedList_length(list) == -1)
      .      .  128:     {
-     .      .  129:       fprintf(stderr, "List is corrupted.");
+     .      .  129:       fprintf(stderr, "List is corrupted\n");
      .      .  130:       exit(2);
      .      .  131:     }
      .      .  132: 
@@ -186,7 +184,7 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  144: 
      .      .  145: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
      .      .  146: 	    {
-     .      .  147: 	      fprintf(stderr,"Element not found in lookup");
+     .      .  147: 	      fprintf(stderr,"Element not found in lookup.\n");
      .      .  148: 	      exit(2);
      .      .  149: 	    }
      .      .  150: 
@@ -198,13 +196,13 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  156: 	{
      .      .  157: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
      .      .  158: 
-     .      .  159:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+  3655   3655  159:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
      .      .  160: 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
      .      .  161: 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
      .      .  162: 
-     .      .  163: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
+     .    231  163: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
      .      .  164: 	    {
-     .      .  165: 	      fprintf(stderr,"Element not found in lookup");
+     .      .  165: 	      fprintf(stderr,"Element not found in lookup.\n");
      .      .  166: 	      exit(2);
      .      .  167: 	    }
      .      .  168: 	  SortedList_delete(&elem[i]);
@@ -214,9 +212,9 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  172: 	}
      .      .  173:       else
      .      .  174: 	{
-     .     41  175: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
+     .      .  175: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
      .      .  176: 	    {
-     .      .  177: 	      fprintf(stderr,"Element not found in lookup");
+     .      .  177: 	      fprintf(stderr,"Element not found in lookup.\n");
      .      .  178: 	      exit(2);
      .      .  179: 	    }
      .      .  180: 	  SortedList_delete(&elem[i]);
@@ -224,7 +222,7 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  182:     }
      .      .  183:   if (SortedList_length(list) == -1)
      .      .  184:     {
-     .      .  185:       fprintf(stderr,"List is corrupted\n");
+     .      .  185:       fprintf(stderr,"List is corrupted.\n");
      .      .  186:       exit(2);
      .      .  187:     }
      .      .  188: }
