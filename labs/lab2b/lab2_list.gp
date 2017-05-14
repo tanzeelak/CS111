@@ -1,6 +1,6 @@
 #! /usr/bin/gnuplot
 #
-# purpose:
+#1;95;0c purpose:
 #  generate data reduction graphs for the multi-threaded list project
 #
 # input: lab2_list.csv
@@ -75,3 +75,36 @@ plot \
      with points lc rgb "green" title "Mutex", \
      "< grep 'list-id-s,' lab2_list.csv" using ($2):($3) \
      with points lc rgb "blue" title "Spin-Lock", \
+
+set title "Scalability 4: Throughput with Mutex Sync"
+set xlabel "Number of thraeds"
+set logscale x 2
+set ylabel "Througput"
+set logscale y 10
+set output 'lab2b-4.png'
+plot \
+     "< grep 'list-none-m,.*,1000,1,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     	title '1 list' with linespoints lc rgb 'red', \
+     "< grep 'list-none-m,.*,1000,4,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     	title '4 list' with linespoints lc rgb 'green', \
+     "< grep 'list-none-m,.*,1000,8,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     	title '8 list' with linespoints lc rgb 'blue', \
+     "< grep 'list-none-m,.*,1000,16,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     	title '16 list' with linespoints lc rgb 'orange', \
+
+set title "Scalability 5: Throughput with Spin Lock Sync"
+set xlabel "Number of thraeds"
+set logscale x 2
+set ylabel "Througput"
+set logscale y 10
+set output 'lab2b-5.png'
+plot \
+     "< grep 'list-none-s,.*,1000,1,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     	title '1 list' with linespoints lc rgb 'red', \
+     "< grep 'list-none-s,.*,1000,4,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     	title '4 list' with linespoints lc rgb 'green', \
+     "< grep 'list-none-s,.*,1000,8,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     	title '8 list' with linespoints lc rgb 'blue', \
+     "< grep 'list-none-s,.*,1000,16,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     	title '16 list' with linespoints lc rgb 'orange', \
+

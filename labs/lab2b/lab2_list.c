@@ -373,6 +373,6 @@ int main(int argc, char *argv[])
     //    long long runTime = end.tv_nsec - start.tv_nsec;
     long long aveTime = ns/numOp;
     long long aveMutex = mutex_time/numOp;
-    fprintf(stdout, "%s,%i,%i,1,%lli,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, ns, aveTime, aveMutex);
+    fprintf(stdout, "%s,%i,%i,%i,%lli,%lli,%lli,%lli\n", tag,threadNum, iterNum, listNum, numOp, ns, aveTime, aveMutex);
 
 }
