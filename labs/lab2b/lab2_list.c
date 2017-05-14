@@ -95,19 +95,15 @@ void* listAdd(void* offset)
   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
     {
       unsigned int listId = hash(elem[i].key) % listNum;
-      //      fprintf(stderr, "\nlistId: %d\n", listId);
       if (syncopt == 'm')
 	{
 	  
 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
-	  //	  perror("about to lock");
 	  pthread_mutex_lock(&count_mutex);
 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
-	  //	  perror("locked");
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
-	  //	  perror("lol");
 
-	  fprintf(stderr, "key: %s, hashid: %u, offset: %d\n", elem[i].key, listId, *(int*)offset);
+	  //	  fprintf(stderr, "key: %s, hashid: %u, offset: %d\n", elem[i].key, listId, *(int*)offset);
 	  SortedList_insert(&list[listId], &elem[i]);
 
 	  pthread_mutex_unlock(&count_mutex);
@@ -356,6 +352,6 @@ int main(int argc, char *argv[])
     //    long long runTime = end.tv_nsec - start.tv_nsec;
     long long aveTime = ns/numOp;
     long long aveMutex = mutex_time/numOp;
-    fprintf(stdout, "%s,%i,%i,1,%lli,%lli,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, ns, aveTime, aveMutex, mutex_time);
+    fprintf(stdout, "%s,%i,%i,1,%lli,%lli,%lli,%lli\n", tag,threadNum, iterNum, numOp, ns, aveTime, aveMutex);
 
 }
