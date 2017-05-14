@@ -30,35 +30,30 @@ set datafile separator ","
 
 # how many threads/iterations we can run without failure (w/o yielding)
 
-set title "List-1: throughput vs number of threads"
-set xlabel "Threads"
+set title "List 1: Throughput with Mutex Sync"
+set xlabel "Number of thraeds"
 set logscale x 2
-unset xrange
-set xrange [0.75:]
-set ylabel "Length-adjusted cost per operation(ns)"
-set logscale y
+set ylabel "Througput"
+set logscale y 10
 set output 'lab2b_1.png'
-set key left top
 plot \
-     "< grep -e 'list-none-m,[0-9]*,1000,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     title '(adjusted) list w/mutex' with linespoints lc rgb 'blue', \
-     "< grep -e 'list-none-s,[0-9]*,1000,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     title '(adjusted) list w/spin-lock' with linespoints lc rgb 'green'
+     "< grep 'list-none-m,.*,1000,1,' lab2b_list.csv" using ($2):(1000000000/($7)) \
+     	title '1 list' with linespoints lc rgb 'blue', \
+     "< grep 'list-none-s,.*,1000,1,' lab2b_list.csv" using ($2):(1000000000/($7)) \
+     	title '1 list' with linespoints lc rgb 'green'
 
-set title "List-2: mean time per mutex wait and mean time per operation"
-set xlabel "Threads"
+set title "List 2: Throughput with Mutex Sync"
+set xlabel "Number of thraeds"
 set logscale x 2
-unset xrange
-set xrange [0.75:]
-set ylabel "Length-adjusted cost per operation(ns)"
-set logscale y
+set ylabel "Througput"
+set logscale y 10
 set output 'lab2b_2.png'
-set key left top
 plot \
-     "< grep -e 'list-none-m,[0-9]*,1000,' lab2b_list.csv" using ($2):($7) \
-     title '(adjusted) list w/completion' with linespoints lc rgb 'blue', \
-     "< grep -e 'list-none-m,[0-9]*,1000,' lab2b_list.csv" using ($2):($8) \
-     title '(adjusted) list w/waitfor' with linespoints lc rgb 'green'
+     "< grep 'list-none-m,.*,1000,1,' lab2b_list.csv" using ($2):($7) \
+     	title '1 list' with linespoints lc rgb 'blue', \
+     "< grep 'list-none-m,.*,1000,1,' lab2b_list.csv" using ($2):($8) \
+     	title '1 list' with linespoints lc rgb 'green'
+
 
 
 set title "Scalability 3: Correct Synchronization of Partioned Lists"
