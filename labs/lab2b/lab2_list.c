@@ -14,6 +14,7 @@ pthread_mutex_t count_mutex;
 long long count;
 int threadNum = 1;
 int iterNum = 1;
+int listNum = 1;
 int opt_yield = 0;
 int testAndSet = 0;
 char syncopt;
@@ -37,10 +38,12 @@ void sysFailed(char* sysCall, int exitNum)
 
 void initList(void)
 {
-   list = malloc(sizeof(SortedList_t));
-   list->key = NULL;
-   list->next = list;
-   list->prev = list;
+   list = malloc(sizeof(SortedList_t)*listNum);
+   for (int i = 0; i < listNum; i++){
+     list[i].key = NULL;
+     list[i].next = list;
+     list[i].prev = list;
+   }
 }
 
 void initLocks(void)
@@ -49,6 +52,17 @@ void initLocks(void)
     pthread_mutex_init(&count_mutex,NULL);
   if (syncopt == 's')
       spin = 0; 
+}
+
+unsigned int hash(const char* key)
+{
+  unsigned int counter;
+  unsigned int hashAddress = 0;
+  for (counter = 0; key[counter] != '\0'; counter++)
+    {
+      hashAddress = key[counter] + (hashAddress << 6) + (hashAddress << 16) - hashAddress;
+    }
+  return hashAddress;
 }
 
 char *randstring(int length) {    
@@ -73,35 +87,16 @@ char *randstring(int length) {
   return randomString;
 }
 
-void add(long long *pointer, long long value) {
-  long long sum = *pointer + value;
-  if (opt_yield)
-    sched_yield();
-  *pointer = sum;
-}
-
-void add_c(long long *pointer, long long value) {
-  long long oldValue;
-  long long sum;
-  do {
-    oldValue = *pointer;
-    sum = oldValue + value;
-    if (opt_yield)
-      sched_yield();
-  }while(__sync_val_compare_and_swap(pointer, oldValue, sum) != oldValue);
-
-}
-
 void* listAdd(void* offset)
 {
-
-
   int i, added, deleted;
   SortedListElement_t *toDel;
   
   //    fprintf(stderr, "offset: %d\n", *(int*)offset);
   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
     {
+
+      unsigned int listId = hash(elem[i].key) % listNum;
       if (syncopt == 'm')
 	{
 	  
@@ -111,7 +106,9 @@ void* listAdd(void* offset)
 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
-	  SortedList_insert(list, &elem[i]);
+
+	  
+	  SortedList_insert(&list[listId], &elem[i]);
 	  pthread_mutex_unlock(&count_mutex);
 
 	}
@@ -125,19 +122,21 @@ void* listAdd(void* offset)
 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
-	  SortedList_insert(list, &elem[i]);
+	  SortedList_insert(&list[listId], &elem[i]);
 	  __sync_lock_release(&testAndSet);
 	}
       else
 	{
-	  SortedList_insert(list, &elem[i]);
+	  SortedList_insert(&list[listId], &elem[i]);
 	}
     }
-  added = SortedList_length(list);
+  //  added = SortedList_length(list);
   //  fprintf(stderr, "added length: %d\n", added);
 
   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
     {
+
+      unsigned int listId = hash(elem[i].key) % listNum;
       if (syncopt == 'm')
 	{
 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
@@ -146,7 +145,7 @@ void* listAdd(void* offset)
 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
-	  toDel = SortedList_lookup(list, elem[i].key);
+	  toDel = SortedList_lookup(&list[listId], elem[i].key);
 	  SortedList_delete(&elem[i]);
 	  pthread_mutex_unlock(&count_mutex);
 
@@ -159,7 +158,7 @@ void* listAdd(void* offset)
 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
-	  toDel = SortedList_lookup(list, elem[i].key);
+	  toDel = SortedList_lookup(&list[listId], elem[i].key);
 	  SortedList_delete(&elem[i]);
 	  __sync_lock_release(&testAndSet);
 
@@ -167,11 +166,11 @@ void* listAdd(void* offset)
 	}
       else
 	{
-	  toDel = SortedList_lookup(list, elem[i].key);
+	  toDel = SortedList_lookup(&list[listId], elem[i].key);
 	  SortedList_delete(&elem[i]);
 	}
     }
-  deleted = SortedList_length(list);
+  //  deleted = SortedList_length(list);
   //  fprintf(stdout, "deleted length: %d\n", deleted);
 
 }
@@ -195,10 +194,12 @@ int main(int argc, char *argv[])
     int insFlag = 0;
     int delFlag = 0;
     int lookFlag = 0;
+    int listFlag = 0; 
     char* threadopt = NULL;
     char* iteropt = NULL;
     char* yieldopt = NULL;
     char* syncoptS = NULL;
+    char* listopt = NULL;
 
     struct timespec start, end;
 
@@ -215,6 +216,7 @@ int main(int argc, char *argv[])
       {"iterations", required_argument, 0, 'i'},
       {"yield", required_argument, 0, 'y'},
       {"sync", required_argument, 0, 's'},
+      {"lists", required_argument, 0, 'l'},
       {0,0,0,0}
     };
 
@@ -239,6 +241,9 @@ int main(int argc, char *argv[])
 	  syncopt = optarg[0];
 	  syncoptS = optarg;
 	  break;
+	case 'l':
+	  listFlag = 1;
+	  listopt = optarg;
         default:
           fprintf(stderr, "Proper usage of options: --threads=#threads, --iterations=#iterations, --yield=location, --sync=test\n");
           exit(1);
@@ -280,6 +285,10 @@ int main(int argc, char *argv[])
     else 
       {
 	strcat(tag,"none");
+      }
+    if (listFlag)
+      {
+	listNum = atoi(listopt);
       }
 
     //INITIALIZE EMPTY LIST
@@ -324,7 +333,6 @@ int main(int argc, char *argv[])
 	  fprintf(stderr, "ERROR: return code from pthread_create():%d\n", rc);
 	  exit(2);
 	}
-	
       }
 
     for (i = 0; i < threadNum; i++)
@@ -341,12 +349,7 @@ int main(int argc, char *argv[])
     ns += end.tv_nsec;
     ns -= start.tv_nsec;
 
-    
-
     int isZero = !SortedList_length(list);
-    
-
-    
     long long numOp = threadNum * iterNum * 3;
     //    long long runTime = end.tv_nsec - start.tv_nsec;
     long long aveTime = ns/numOp;
