@@ -40,9 +40,9 @@ set logscale y
 set output 'lab2b_1.png'
 set key left top
 plot \
-     "< grep -e 'list-none-m,[0-9]*,1000,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     "< grep -e 'list-none-m,[0-9]*,1000,' lab2b_list.csv" using ($2):(1000000000/($7)) \
      title '(adjusted) list w/mutex' with linespoints lc rgb 'blue', \
-     "< grep -e 'list-none-s,[0-9]*,1000,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     "< grep -e 'list-none-s,[0-9]*,1000,' lab2b_list.csv" using ($2):(1000000000/($7)) \
      title '(adjusted) list w/spin-lock' with linespoints lc rgb 'green'
 
 set title "List-2: mean time per mutex wait and mean time per operation"
@@ -55,9 +55,9 @@ set logscale y
 set output 'lab2b_2.png'
 set key left top
 plot \
-     "< grep -e 'list-none-m,[0-9]*,1000,' lab2_list.csv" using ($2):($7) \
+     "< grep -e 'list-none-m,[0-9]*,1000,' lab2b_list.csv" using ($2):($7) \
      title '(adjusted) list w/completion' with linespoints lc rgb 'blue', \
-     "< grep -e 'list-none-m,[0-9]*,1000,' lab2_list.csv" using ($2):($8) \
+     "< grep -e 'list-none-m,[0-9]*,1000,' lab2b_list.csv" using ($2):($8) \
      title '(adjusted) list w/waitfor' with linespoints lc rgb 'green'
 
 
@@ -69,11 +69,11 @@ set ylabel "Successful Iterations"
 set logscale y 10
 set output 'lab2b_3.png'
 plot \
-     "< grep 'list-id-none,' lab2_list.csv" using ($2):($3) \
+     "< grep 'list-id-none,' lab2b_list.csv" using ($2):($3) \
      with points lc rgb "red" title "unprotected", \
-     "< grep 'list-id-m,' lab2_list.csv" using ($2):($3) \
+     "< grep 'list-id-m,' lab2b_list.csv" using ($2):($3) \
      with points lc rgb "green" title "Mutex", \
-     "< grep 'list-id-s,' lab2_list.csv" using ($2):($3) \
+     "< grep 'list-id-s,' lab2b_list.csv" using ($2):($3) \
      with points lc rgb "blue" title "Spin-Lock", \
 
 set title "Scalability 4: Throughput with Mutex Sync"
@@ -83,13 +83,13 @@ set ylabel "Througput"
 set logscale y 10
 set output 'lab2b_4.png'
 plot \
-     "< grep 'list-none-m,.*,1000,1,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     "< grep 'list-none-m,.*,1000,1,' lab2b_list.csv" using ($2):(1000000000/($7)) \
      	title '1 list' with linespoints lc rgb 'red', \
-     "< grep 'list-none-m,.*,1000,4,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     "< grep 'list-none-m,.*,1000,4,' lab2b_list.csv" using ($2):(1000000000/($7)) \
      	title '4 list' with linespoints lc rgb 'green', \
-     "< grep 'list-none-m,.*,1000,8,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     "< grep 'list-none-m,.*,1000,8,' lab2b_list.csv" using ($2):(1000000000/($7)) \
      	title '8 list' with linespoints lc rgb 'blue', \
-     "< grep 'list-none-m,.*,1000,16,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     "< grep 'list-none-m,.*,1000,16,' lab2b_list.csv" using ($2):(1000000000/($7)) \
      	title '16 list' with linespoints lc rgb 'orange', \
 
 set title "Scalability 5: Throughput with Spin Lock Sync"
@@ -99,12 +99,12 @@ set ylabel "Througput"
 set logscale y 10
 set output 'lab2b_5.png'
 plot \
-     "< grep 'list-none-s,.*,1000,1,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     "< grep 'list-none-s,.*,1000,1,' lab2b_list.csv" using ($2):(1000000000/($7)) \
      	title '1 list' with linespoints lc rgb 'red', \
-     "< grep 'list-none-s,.*,1000,4,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     "< grep 'list-none-s,.*,1000,4,' lab2b_list.csv" using ($2):(1000000000/($7)) \
      	title '4 list' with linespoints lc rgb 'green', \
-     "< grep 'list-none-s,.*,1000,8,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     "< grep 'list-none-s,.*,1000,8,' lab2b_list.csv" using ($2):(1000000000/($7)) \
      	title '8 list' with linespoints lc rgb 'blue', \
-     "< grep 'list-none-s,.*,1000,16,' lab2_list.csv" using ($2):(1000000000/($7)) \
+     "< grep 'list-none-s,.*,1000,16,' lab2b_list.csv" using ($2):(1000000000/($7)) \
      	title '16 list' with linespoints lc rgb 'orange', \
 
