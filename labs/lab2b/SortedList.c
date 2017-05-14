@@ -6,7 +6,7 @@
 
 void SortedList_insert(SortedList_t *list, SortedListElement_t *element)
 {
-  if(list == NULL)
+  if(list == NULL || element == NULL)
       return;
   SortedListElement_t *p = list->next;
   while(p != list)

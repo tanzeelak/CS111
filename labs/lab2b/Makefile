@@ -7,10 +7,10 @@ CFLAGS = -g
 
 
 build:
-	@gcc -pthread -lrt -std=gnu99 -o lab2_list SortedList.c lab2_list.c
+	@gcc -pthread -g -lrt -std=gnu99 -o lab2_list SortedList.c lab2_list.c
 
 lab2_list: lab2_list.c SortedList.c
-	gcc -std=gnu99  -lpthread -o lab2_list -g -L ~/lib/ -lprofiler lab2_list.c SortedList.c
+	gcc -std=gnu99 -g -Og  -lpthread -o lab2_list -L ~/lib/ -lprofiler lab2_list.c SortedList.c
 
 profile1: lab2_list Makefile
 	-rm -rf ./raw.gperf

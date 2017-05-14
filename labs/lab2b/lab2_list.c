@@ -41,8 +41,8 @@ void initList(void)
    list = malloc(sizeof(SortedList_t)*listNum);
    for (int i = 0; i < listNum; i++){
      list[i].key = NULL;
-     list[i].next = list;
-     list[i].prev = list;
+     list[i].next = &list[i];
+     list[i].prev = &list[i];
    }
 }
 
@@ -56,8 +56,8 @@ void initLocks(void)
 
 unsigned int hash(const char* key)
 {
-  unsigned int counter;
-  unsigned int hashAddress = 0;
+  unsigned long counter;
+  unsigned long hashAddress = 0;
   for (counter = 0; key[counter] != '\0'; counter++)
     {
       hashAddress = key[counter] + (hashAddress << 6) + (hashAddress << 16) - hashAddress;
@@ -91,24 +91,25 @@ void* listAdd(void* offset)
 {
   int i, added, deleted;
   SortedListElement_t *toDel;
-  
-  //    fprintf(stderr, "offset: %d\n", *(int*)offset);
+
   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
     {
-
       unsigned int listId = hash(elem[i].key) % listNum;
+      //      fprintf(stderr, "\nlistId: %d\n", listId);
       if (syncopt == 'm')
 	{
 	  
 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
-
+	  //	  perror("about to lock");
 	  pthread_mutex_lock(&count_mutex);
 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
+	  //	  perror("locked");
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
+	  //	  perror("lol");
 
-
-	  
+	  fprintf(stderr, "key: %s, hashid: %u, offset: %d\n", elem[i].key, listId, *(int*)offset);
 	  SortedList_insert(&list[listId], &elem[i]);
+
 	  pthread_mutex_unlock(&count_mutex);
 
 	}
@@ -264,7 +265,7 @@ int main(int argc, char *argv[])
 	strcat(tag, yieldopt); 
 	strcat(tag,"-");
 	opt_yield = 1;
-	fprintf(stderr, "opt_yield: %i", opt_yield);
+	//	fprintf(stderr, "opt_yield: %i", opt_yield);
 	for (i = 0; i != '\0'; i++)
 	  {
 	    if (yieldopt[i] == 'i')
