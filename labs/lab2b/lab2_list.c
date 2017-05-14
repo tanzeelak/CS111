@@ -127,7 +127,11 @@ void* listAdd(void* offset)
 	  SortedList_insert(&list[listId], &elem[i]);
 	}
     }
-  //  added = SortedList_length(list);
+  if(SortedList_length(list) == -1)
+    {
+      perror("List is corrupted");
+      exit(2);
+    }
   //  fprintf(stderr, "added length: %d\n", added);
 
   for (i = *(int*)offset; i < *(int*)offset+iterNum; i++)
@@ -142,7 +146,12 @@ void* listAdd(void* offset)
 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
-	  toDel = SortedList_lookup(&list[listId], elem[i].key);
+	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
+	    {
+	      perror("Element not found in lookup");
+	      exit(2);
+	    }
+
 	  SortedList_delete(&elem[i]);
 	  pthread_mutex_unlock(&count_mutex);
 
@@ -155,7 +164,11 @@ void* listAdd(void* offset)
 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
-	  toDel = SortedList_lookup(&list[listId], elem[i].key);
+	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
+	    {
+	      perror("Element not found in lookup");
+	      exit(2);
+	    }
 	  SortedList_delete(&elem[i]);
 	  __sync_lock_release(&testAndSet);
 
@@ -163,11 +176,19 @@ void* listAdd(void* offset)
 	}
       else
 	{
-	  toDel = SortedList_lookup(&list[listId], elem[i].key);
+	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
+	    {
+	      perror("Element not found in lookup");
+	      exit(2);
+	    }
 	  SortedList_delete(&elem[i]);
 	}
     }
-  //  deleted = SortedList_length(list);
+  if (SortedList_length(list) == -1)
+    {
+      perror("List is corrupted");
+      exit(2);
+    }
   //  fprintf(stdout, "deleted length: %d\n", deleted);
 
 }
