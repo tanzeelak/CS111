@@ -30,29 +30,29 @@ set datafile separator ","
 
 # how many threads/iterations we can run without failure (w/o yielding)
 
-set title "List 1: Throughput with Mutex Sync"
-set xlabel "Number of thraeds"
+set title "Scalability 1: Throughput of Synchronized Lists"
+set xlabel "Threads"
 set logscale x 2
-set ylabel "Througput"
+set ylabel "Throughput (operations/sec)"
 set logscale y 10
 set output 'lab2b_1.png'
 plot \
      "< grep 'list-none-m,.*,1000,1,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     	title '1 list' with linespoints lc rgb 'blue', \
+     	title 'list ins/lookup/delete w/ mutex' with linespoints lc rgb 'orange', \
      "< grep 'list-none-s,.*,1000,1,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     	title '1 list' with linespoints lc rgb 'green'
+     	title 'list ins/lookup/delete w/spin' with linespoints lc rgb 'purple'
 
-set title "List 2: Throughput with Mutex Sync"
-set xlabel "Number of thraeds"
+set title "Scalability 2: Per-operation Times for Mutex-Protected List Operations"
+set xlabel "Threads"
 set logscale x 2
-set ylabel "Througput"
+set ylabel "mean time/operation (ns)"
 set logscale y 10
 set output 'lab2b_2.png'
 plot \
      "< grep 'list-none-m,.*,1000,1,' lab2b_list.csv" using ($2):($7) \
-     	title '1 list' with linespoints lc rgb 'blue', \
+     	title 'completion time' with linespoints lc rgb 'orange', \
      "< grep 'list-none-m,.*,1000,1,' lab2b_list.csv" using ($2):($8) \
-     	title '1 list' with linespoints lc rgb 'green'
+     	title 'wait for lock' with linespoints lc rgb 'red'
 
 
 
@@ -71,35 +71,35 @@ plot \
      "< grep 'list-id-s,' lab2b_list.csv" using ($2):($3) \
      with points lc rgb "blue" title "Spin-Lock", \
 
-set title "Scalability 4: Throughput with Mutex Sync"
+set title "Scalability 4: Throughput with Mutex-Synchronized Partitioned Lists"
 set xlabel "Number of thraeds"
 set logscale x 2
-set ylabel "Througput"
+set ylabel "Throughput"
 set logscale y 10
 set output 'lab2b_4.png'
 plot \
      "< grep 'list-none-m,.*,1000,1,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     	title '1 list' with linespoints lc rgb 'red', \
+     	title 'lists=1' with linespoints lc rgb 'purple', \
      "< grep 'list-none-m,.*,1000,4,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     	title '4 list' with linespoints lc rgb 'green', \
+     	title 'lists=4' with linespoints lc rgb 'green', \
      "< grep 'list-none-m,.*,1000,8,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     	title '8 list' with linespoints lc rgb 'blue', \
+     	title 'lists=8' with linespoints lc rgb 'blue', \
      "< grep 'list-none-m,.*,1000,16,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     	title '16 list' with linespoints lc rgb 'orange', \
+     	title 'lists=16' with linespoints lc rgb 'orange', \
 
 set title "Scalability 5: Throughput with Spin Lock Sync"
 set xlabel "Number of thraeds"
 set logscale x 2
-set ylabel "Througput"
+set ylabel "Throughput"
 set logscale y 10
 set output 'lab2b_5.png'
 plot \
      "< grep 'list-none-s,.*,1000,1,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     	title '1 list' with linespoints lc rgb 'red', \
+     	title 'lists=1' with linespoints lc rgb 'purple', \
      "< grep 'list-none-s,.*,1000,4,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     	title '4 list' with linespoints lc rgb 'green', \
+     	title 'lists=4' with linespoints lc rgb 'green', \
      "< grep 'list-none-s,.*,1000,8,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     	title '8 list' with linespoints lc rgb 'blue', \
+     	title 'lists=8' with linespoints lc rgb 'blue', \
      "< grep 'list-none-s,.*,1000,16,' lab2b_list.csv" using ($2):(1000000000/($7)) \
-     	title '16 list' with linespoints lc rgb 'orange', \
+     	title 'lists=16' with linespoints lc rgb 'orange', \
 

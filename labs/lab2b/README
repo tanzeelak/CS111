@@ -24,56 +24,58 @@ lab2_list-4.png: (length-adjusted) cost per operation vs the number of threads f
 
 ---QUESTIONS---
 
-QUESTION 2.1.1 - causing conflicts:
-Why does it take many iterations before errors are seen?
-    Since there are more chacnes for a thread to be preempted during its execution, it usally takes more iteraitons before errors are seen. If time create is less than time execution, multiple threads are going to be updating the same value. If time create is greater than time exectuion, only one thread is updating the value. The greater the iterations, the greater the execution time before the errors are seen.
+QUESTION 2.3.1 - Cycles in the basic list implementation:
 
-Why does a significantly smaller number of iterations so seldom fail?
-    The lesser number of iterations results in a significaintly lesser execution time compared to the pthread_create time, so it's less likely to be preempted.
+Where do you believe most of the cycles are spent in the 1 and 2-thread list tests?
+Most of the cycles will be spent in the list (inserting, deleting, looking up) options during the 1 and 2 thread tests. 
 
-QUESTION 2.1.2 - cost of yielding:
-Why are the --yield runs so much slower?
-    Since sched_yield is a system call, it is an expensive and time-consuming operation involing a register bien gsaved and restored again. Yield also increases the chances of preemption and a context-switch happening, increasing time even more.
-Where is the additional time going?
-      Context switching uses up this time.
-Is it possible to get valid per-operation timings if we are using the --yield option? If so, explain how. If not, explain why not.
-   It is not possible, because context switches consume the bulk of the time, resulting in inaccurate per-operation timings. The overhead time is too large to determine how much time was spent on context switching.
+Why do you believe these to be the most expensive parts of the code?
+Since there are only a few threads, there won't be a lot of time spent on context switching, but a higher percentage of time dedicated to the actual operations.
 
-QUESTION 2.1.3 - measurement errors:
-Why does the average cost per operation drop with increasing iterations?
-    With lesser iterations, most of the time is spent on pthread create. With more iterations, the cost of pthread create time becomes less significant in the cost.
+Where do you believe most of the time/cycles are being spent in the high-thread spin-lock tests?
+When there are more threads, there are more context switches, so more time would be spent spinning and waiting for other threads to release the spin locks.
 
-If the cost per iteration is a function of the number of iterations, how do we know how many iterations to run (or what the "correct" cost is)?
-   With increasing iterations, the cost of creating a thread convergest to near zero. The correct cost is determeind by whent he line stabilizes.
+Where do you believe most of the time/cycles are being spent in the high-thread mutex tests?
+Since there are more threads, there will be more context swiches. So more time will be dedicated to making those system calls to switch between kernal and user mode to schedule the competing threads.
 
-QUESTION 2.1.4 - costs of serialization:
-Why do all of the options perform similarly for low numbers of threads?
-    With a low number of threads, there is less compeitiotn for resources so options perform similarly. The options perform differently when there is a greater chance for race conditions for resources.  
+QUESTION 2.3.2 - Execution Profiling:
 
-Why do the three protected operations slow down as the number of threads rises?
-    Since more threads are competing, race conditions increase and decrease performance speed.
+Where (what lines of code) are consuming most of the cycles when the spin-lock version of the list exerciser is run with a large number of threads?
+The function threadadd is consuming most of the cyles when the psin lock verion of hte list experciser is run. 
 
-QUESTION 2.2.1 - scalability of Mutex
+Why does this operation become so expensive with large numbers of threads?
+Since a large number of threads are trying to execute the protected critical section, multiple threads are spinnning and using up CPU resources. 
 
-Compare the variation in time per mutex-protected operation vs the number of threads in Part-1 (adds) and Part-2 (sorted lists).
-	In both parts, mutex-protected operations increases with the number of threads intiitally. This changes eventually so that the addition cost increase.
+QUESTION 2.3.3 - Mutex Wait Time:
 
-Comment on the general shapes of the curves, and explain why they have this shape.
-	The curves appear to be exponentionally decreasing with the mutex lock at a converging point in boht parts.This occurs because the steps in the crtical section is greater in list than it is in the add operations. As a result, there is more competition for resources and increases the chances of preemeption int the list operations. 
+Look at the average time per operation (vs # threads) and the average wait-for-mutex time (vs #threads).
+Why does the average lock-wait time rise so dramatically with the number of contending threads?
+The average lock-wait time rises so dramatically with the number of contending threads because more threads are in the queue when one thread has locked a critical section. Naturally, wait time will be longer.
 
-Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences.
-	Since the critical section area in list involves more steps than it does in list, the odds of preemption in list are much higher than they are in add. The race for resources increases and preemption is affected more significantly in list. 
-	
-QUESTION 2.2.2 - scalability of spin locks
-Compare the variation in time per protected operation vs the number of threads for list operations protected by Mutex vs Spin locks. Comment on the general shapes of the curves, and explain why they have this shape.
-	The curve for the mutex uses less than time than the one for the spin lock. While they both show a graph with a postive sloep (increasing), this is inveitable since competition for resouces increases. Spin locks do worse because they waste a lot of CPU resources and "spinning" wait. This problem increases with time as shown by the graph.
+Why does the completion time per operation rise (less dramatically) with the number of contending threads?
+The completion time per operation rises less dramatically with thenumber of contending threads because it does not include the waiting time for threasd, only the processesing to competle the tasks. Thet ime is high for unaccounted for waiting time. 
 
+How is it possible for the wait time per operation to go up faster (or higher) than the completion time per operation?
+It is possible for the wait time per operation to go up faster than the completion time per operation because wait tim eis is sum of twthe wait times for all ther threasd, including the lcoking time. Completion time does not include t he wiat time for all the threasd, so it can be less.
+
+QUESTION 2.3.4 - Performance of Partitioned Lists
+
+Explain the change in performance of the synchronized methods as a function of the number of lists.
+The increasing number of lists does not affect the amount of time threads spend waiting to acquire the lock because the thread acquires the lock before performing any of the list operations. 
+
+Should the throughput continue increasing as the number of lists is further increased? If not, explain why not.
+The throughput instead increases with the number of lists because elements are spread through the lists, making them shorter. The time required to perform the basic list operations (insert, delete, and lookup) are much shorter.
+
+It seems reasonable to suggest the throughput of an N-way partitioned list should be equivalent to the throughput of a single list with fewer (1/N) threads. Does this appear to be true in the above curves? If not, explain why not.
+In the above curves, it does not appear that the throughout of an N-way partitioned lists results in a thoroughput of a single list with fewer 1/N threads. the throroughput mainly depends on how mnay threads are competing in the critical section. Even if the nw-way paritioned lists have more threads, the threds do not spend as much tim eint he ciritcal seciton and have an oreall higher throughoput. 
 
 
 ---SOURCES---
 
-CS111 TA Slides for DiscussionB
+CS111 TA Slides
 "Random String generator in C", AntonioCS, https://codereview.stackexchange.com/questions/29198/random-string-generator-in-c
 "Pthreads Overview", Lawrence Livermore National Laboratory, https://computing.llnl.gov/tutorials/pthreads/#Designing
 "Built-in functions for atomic memory access", gcc.gnu.org, https://gcc.gnu.org/onlinedocs/gcc-4.4.5/gcc/Atomic-Builtins.html
 "clock_gettime(3) - Linux man page", linux.die.net, https://linux.die.net/man/3/clock_gettime
+"Simple hash functions", Hardell, http://stackoverflow.com/questions/14409466/simple-hash-functions
+
