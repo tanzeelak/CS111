@@ -97,9 +97,9 @@ void* listAdd(void* offset)
       unsigned int listId = hash(elem[i].key) % listNum;
       if (syncopt == 'm')
 	{
-	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
+	  if (clock_gettime(CLOCK_MONOTONIC, &start_lock) < 0)sysFailed("clock_gettime",1);
 	  pthread_mutex_lock(&count_mutex);
-	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
+	  if (clock_gettime(CLOCK_MONOTONIC, &end_lock) < 0)sysFailed("clock_gettime",1);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
 	  SortedList_insert(&list[listId], &elem[i]);
@@ -109,11 +109,11 @@ void* listAdd(void* offset)
       else if (syncopt == 's')
 	{
 
-	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
+	  if(clock_gettime(CLOCK_MONOTONIC, &start_lock)<0)sysFailed("clock_gettime",1);
 
   	  while(__sync_lock_test_and_set(&testAndSet, 1));
 
-	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
+	  if(clock_gettime(CLOCK_MONOTONIC, &end_lock)<0)sysFailed("clock_gettime",1);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
 	  SortedList_insert(&list[listId], &elem[i]);
@@ -136,10 +136,10 @@ void* listAdd(void* offset)
       unsigned int listId = hash(elem[i].key) % listNum;
       if (syncopt == 'm')
 	{
-	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
+	  if(clock_gettime(CLOCK_MONOTONIC, &start_lock)<0)sysFailed("clock_gettime",1);
 
 	  pthread_mutex_lock(&count_mutex);
-	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
+	  if(clock_gettime(CLOCK_MONOTONIC, &end_lock)<0)sysFailed("clock_gettime",1);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
@@ -154,10 +154,10 @@ void* listAdd(void* offset)
 	}
       else if (syncopt == 's')
 	{
-	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
+	  if(clock_gettime(CLOCK_MONOTONIC, &start_lock)<0)sysFailed("clock_gettime",1);
 
   	  while(__sync_lock_test_and_set(&testAndSet, 1));
-	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
+	  if(clock_gettime(CLOCK_MONOTONIC, &end_lock)<0)sysFailed("clock_gettime",1);
 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
 
 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
@@ -257,19 +257,15 @@ int main(int argc, char *argv[])
 	  listopt = optarg;
 	  break;
         default:
-          fprintf(stderr, "Proper usage of options: --threads=#threads, --iterations=#iterations, --yield=location, --sync=test\n");
+          fprintf(stderr, "Proper usage of options: --threads=#threads, --iterations=#iterations, --yield=location, --sync=test --list=#lists\n");
           exit(1);
         }
     }
 
     if (threadFlag)
-      {
 	threadNum = atoi(threadopt);
-      }
     if (iterFlag)
-      {
 	iterNum = atoi(iteropt);
-      }
     if (yieldFlag)
       {
 	strcat(tag, yieldopt); 
@@ -285,34 +281,23 @@ int main(int argc, char *argv[])
 	      opt_yield |= LOOKUP_YIELD;
 	  }
       }
-    else 
-      {
+    else
 	strcat(tag,"none-");
-      }
     if (syncFlag)
-      {
 	strcat(tag,syncoptS);
-      }
-    else 
-      {
+    else
 	strcat(tag,"none");
-      }
     if (listFlag)
-      {
 	listNum = atoi(listopt);
-      }
 
     //INITIALIZE EMPTY LIST
-    //init list
-
     initList();
 
     //init elements
     reqNum = threadNum * iterNum;
     elem = malloc(reqNum * sizeof(SortedListElement_t));
-    //    fprintf(stdout, "%i\n", reqNum);
+
     offsetArr = malloc(threadNum *sizeof(int));
-    
 
     initLocks();
 
@@ -364,5 +349,5 @@ int main(int argc, char *argv[])
     long long aveTime = ns/numOp;
     long long aveMutex = mutex_time/numOp;
     fprintf(stdout, "%s,%i,%i,%i,%lli,%lli,%lli,%lli\n", tag,threadNum, iterNum, listNum, numOp, ns, aveTime, aveMutex);
-
+    exit(0);
 }

@@ -7,20 +7,10 @@ CFLAGS = -g
 
 
 build:
-	@gcc -pthread -g -lrt -std=gnu99 -o lab2_list SortedList.c lab2_list.c
+	gcc -pthread -g -lrt -std=gnu99 -o lab2_list SortedList.c lab2_list.c
 
 lab2_list: lab2_list.c SortedList.c
 	gcc -std=gnu99 -g -Og  -lpthread -o lab2_list -L ~/lib/ -lprofiler lab2_list.c SortedList.c
-
-profile1: lab2_list Makefile
-	-rm -rf ./raw.gperf
-	pprof --text ./local.raw
-	export LD_PRELOAD=/u/cs/ugrad/tanzeela/lib/libprofiler.so.0
-	export CPUPROFILE=./raw.gperf
-	./lab2_list --threads=12 --iterations=1000
-	pprof --text ./lab2_list ./raw.gperf > profile
-	pprof --list=listAdd ./lab2_list ./raw.gperf >> profile.out
-	rm -f ./raw.gperf
 
 profile: lab2_list Makefile
 	-rm -rf ./raw.gperf

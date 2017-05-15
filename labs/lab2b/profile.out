@@ -1,15 +1,13 @@
-Total: 5548 samples
-    5221  94.1%  94.1%     5548 100.0% listAdd
-     183   3.3%  97.4%      231   4.2% SortedList_lookup
-     113   2.0%  99.4%      113   2.0% __strcmp_sse42
-      24   0.4%  99.9%       95   1.7% SortedList_insert
-       6   0.1% 100.0%        6   0.1% _init
-       1   0.0% 100.0%        1   0.0% 0x00007ffc975b5986
-       0   0.0% 100.0%        1   0.0% __clock_gettime
-       0   0.0% 100.0%     5548 100.0% __clone
-       0   0.0% 100.0%     5548 100.0% start_thread
+Total: 6854 samples
+    6454  94.2%  94.2%     6854 100.0% listAdd
+     195   2.8%  97.0%      239   3.5% SortedList_lookup
+     167   2.4%  99.4%      167   2.4% __strcmp_sse42
+      29   0.4%  99.9%      161   2.3% SortedList_insert
+       9   0.1% 100.0%        9   0.1% _init
+       0   0.0% 100.0%     6854 100.0% __clone
+       0   0.0% 100.0%     6854 100.0% start_thread
 ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/lab2_list.c
-  5221   5548 Total samples (flat / cumulative)
+  6454   6854 Total samples (flat / cumulative)
      .      .   86: 
      .      .   87:   return randomString;
      .      .   88: }
@@ -37,14 +35,14 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  109:       else if (syncopt == 's')
      .      .  110: 	{
      .      .  111: 
-     .      1  112: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
+     .      .  112: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
      .      .  113: 
-  1565   1565  114:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+  1588   1588  114:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
      .      .  115: 
      .      .  116: 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
      1      1  117: 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
      .      .  118: 
-     .     95  119: 	  SortedList_insert(&list[listId], &elem[i]);
+     .    161  119: 	  SortedList_insert(&list[listId], &elem[i]);
      .      .  120: 	  __sync_lock_release(&testAndSet);
      .      .  121: 	}
      .      .  122:       else
@@ -84,11 +82,11 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  156: 	{
      .      .  157: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
      .      .  158: 
-  3655   3655  159:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+  4865   4865  159:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
      .      .  160: 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
      .      .  161: 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
      .      .  162: 
-     .    231  163: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
+     .    239  163: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
      .      .  164: 	    {
      .      .  165: 	      fprintf(stderr,"Element not found in lookup.\n");
      .      .  166: 	      exit(2);
@@ -121,7 +119,7 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  192: {
      .      .  193:   fprintf(stderr,"Caught SIGSEGV %d\n", signum);
 ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/lab2_list.c
-  5221   5548 Total samples (flat / cumulative)
+  6454   6854 Total samples (flat / cumulative)
      .      .   86: 
      .      .   87:   return randomString;
      .      .   88: }
@@ -149,14 +147,14 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  109:       else if (syncopt == 's')
      .      .  110: 	{
      .      .  111: 
-     .      1  112: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
+     .      .  112: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
      .      .  113: 
-  1565   1565  114:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+  1588   1588  114:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
      .      .  115: 
      .      .  116: 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
      1      1  117: 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
      .      .  118: 
-     .     95  119: 	  SortedList_insert(&list[listId], &elem[i]);
+     .    161  119: 	  SortedList_insert(&list[listId], &elem[i]);
      .      .  120: 	  __sync_lock_release(&testAndSet);
      .      .  121: 	}
      .      .  122:       else
@@ -196,11 +194,11 @@ ROUTINE ====================== listAdd in /u/cs/ugrad/tanzeela/cs111/labs/lab2b/
      .      .  156: 	{
      .      .  157: 	  clock_gettime(CLOCK_MONOTONIC, &start_lock);
      .      .  158: 
-  3655   3655  159:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
+  4865   4865  159:   	  while(__sync_lock_test_and_set(&testAndSet, 1));
      .      .  160: 	  clock_gettime(CLOCK_MONOTONIC, &end_lock);
      .      .  161: 	  mutex_time += 1000000000L * (end_lock.tv_sec - start_lock.tv_sec) + end_lock.tv_nsec - start_lock.tv_nsec;
      .      .  162: 
-     .    231  163: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
+     .    239  163: 	  if(SortedList_lookup(&list[listId], elem[i].key) == NULL)
      .      .  164: 	    {
      .      .  165: 	      fprintf(stderr,"Element not found in lookup.\n");
      .      .  166: 	      exit(2);
