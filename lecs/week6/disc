@@ -1,0 +1,44 @@
+2.3.1:
+1 thread doing the list operations, so hafl of cpu should got ot to cpu.
+Why do you believe htese to beth ost expensive parts oft he code?
+No thread competing for the listss.
+Whered do you believe most of the time/cycles rae being spent in the hig-thread spin-locks tests?
+spinning
+Where do you believe most of the time/cycles are being spent in the high-thread spin-lock tests?
+
+
+Got o github of gprefotools-2.5
+
+QUESTION 2.3.2 - Execution Profiling:
+Where (what lines of code) are consuming most of the cycles when the spin-lock version of the list exerciser is run with a large number of threads?
+
+Why does this operation become so expensive with large numbers of threads?
+
+Timing Mutex Waits
+- time variables
+QUESTION 2.3.3 - Mutex Wait Time:
+Look at the average time per operation (vs # threads) and the average wait-for-mutex time (vs #threads).
+Why does the average lock-wait time rise so dramatically with the number of contending threads?
+
+Why does the completion time per operation rise (less dramatically) with the number of contending threads?
+How is it possible for the wait time per operation to go up faster (or higher) than the completion time per operation?
+
+hash function, which key should go t
+
+
+starts with a set of pre-allocated and initialized elements (--iterations=#)
+inserts them all into the multi-list (which sublist the key should go into determined by a hash of the key)
+gets the list length
+looks up and deletes each of the keys it inserted
+exits to re-join the parent thread
+For all of threads, must use same order to use the locks. 
+
+last pict;
+- spin lock completely covers mutex at the same positionx
+
+QUESTION 2.3.4 - Performance of Partitioned Lists
+Explain the change in performance of the synchronized methods as a function of the number of lists.
+Should the throughput continue increasing as the number of lists is further increased? If not, explain why not.
+number of elements in the list
+It seems reasonable to suggest the throughput of an N-way partitioned list should be equivalent to the throughput of a single list with fewer (1/N) threads. Does this appear to be true in the above curves? If not, explain why not.
+we don't have neough data to make a conclusion.
