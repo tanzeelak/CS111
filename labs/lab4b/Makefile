@@ -2,9 +2,6 @@
 #EMAIL: tanzeelakhan@g.ucla.edu
 #ID: 204577214
 
-CC=gcc
-CFLAGS = -g
-
 
 build:
 	gcc -pthread -g -lrt -std=gnu99 -o lab4b lab4b.c
