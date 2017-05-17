@@ -1,0 +1,17 @@
+Serial number: /dev/cu.usbserial-AL0066RK
+WiFi MAC address of Edison: 90:b6:86:06:d5:33
+
+selfie with assembled Edison: Edison is assembled with "What will you make?" chip and plugged into power and my computer. 
+
+establish USB terminal session: 
+	   I selected for the proper wifi, eduroam. This generated an IP address for my edison's network. To view this IP address, I typed ifconfig, and the IP address is located under wlan0 as "inet addr".
+
+copy a file via scp/sftp protocol:
+     Since I have a MAC, I was able to direcly scp from my local machine to the edison's IP address as found in the previous file using the command, "scp hello.c root@131.179.17.36:~/". I entered my password and was notified of a successful copy.
+     
+compilation and execution: 
+	    I then ssh'd from my local machine onto the edison using the following command, "ssh root@131.179.17.36". I enterd my password and ran the hello program with gcc. As shown in the image, this filesuccsfully compiled and executed to print "Hello world."
+
+git install and git clone:
+    I ran "opkg git install" and was notified that git was already installed on my edison. I promptly ran git clone for public repository and was notified of the succesful copy which I listed in the screenshot. 
+
