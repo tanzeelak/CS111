@@ -9,9 +9,28 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <mraa/aio.h>
 #include <unistd.h>
+#include <math.h>
+#include <ctype.h>
 #define print_err() do {if (errno) {fprintf(stderr, "error %s", strerr(errno)); exit(1);}} while(0)
 
+float tempC, tempF;
+int tempType = 0;
+int stopFlag = 0;
+int shutdownFlag = 0;
+FILE* lfd;
+int perFlag=1;
+
+time_t timer;
+char timeBuffer[9];
+struct tM* timeInfo;
+mraa_aio_context tempSensor;
+mraa_gpio_context button;
+const int B = 4275;
 
 void sysFailed(char* sysCall, int exitNum)
 {
@@ -26,12 +45,15 @@ void signal_callback_handler(int signum)
   exit(1);
 }
 
+void* print() 
+{
+}
+
 
 int main(int argc, char *argv[])
 {
 	int optParse = 0;
 	int perNum = 0; 
-    int perFlag = 0;
     int scaleFlag = 0;
     int logFlag = 0;
     char* peropt = NULL;
