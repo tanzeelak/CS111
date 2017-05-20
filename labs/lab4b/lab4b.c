@@ -35,9 +35,9 @@ int main(int argc, char *argv[])
     int scaleFlag = 0;
     int logFlag = 0;
     char* peropt = NULL;
-    char* scaleopt = NULL;
+    char scaleopt = 'F';
     char* logopt = NULL;
-	char* outopt = NULL;
+    char* outopt = NULL;
 
     struct timespec start, end;
 
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
           break;
         case 's':
           scaleFlag = 1;
-          scaleopt = optarg;
+          scaleopt = optarg[0];
           break;
 	case 'l':
 	  logFlag = 1;
