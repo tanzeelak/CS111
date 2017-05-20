@@ -22,15 +22,17 @@ float tempC, tempF;
 int tempType = 0;
 int stopFlag = 0;
 int shutdownFlag = 0;
+int logFlag = 0;
 FILE* lfd;
-int perFlag=1;
+int perFlag=0;
 
 time_t timer;
-char timeBuffer[9];
-struct tM* timeInfo;
+char timeBuff[9];
+struct tm* timeInfo;
 mraa_aio_context tempSensor;
 mraa_gpio_context button;
 const int B = 4275;
+int rawTemp;
 
 void sysFailed(char* sysCall, int exitNum)
 {
@@ -47,6 +49,19 @@ void signal_callback_handler(int signum)
 
 void* print() 
 {
+	tempSensor = mraa_aio_init(0);
+	while(1)
+	{
+		rawTemp = mraa_aio_read(tempSensor);
+		double R = 1023.0/((double)rawTemp) - 1.0;
+		R = 10000.0*R;
+		tempC  = 1.0/(log(R/100000.0)/B + 1/298.15) - 273.15;
+		tempF = tempC * 9/5 + 32;
+
+		time(&timer);
+		timeInfo = localtime(&timer);
+		strftime(timeBuff, 9, "%H:%M:%S", timeInfo);
+	}
 }
 
 
@@ -54,16 +69,12 @@ int main(int argc, char *argv[])
 {
 	int optParse = 0;
 	int perNum = 0; 
-    int scaleFlag = 0;
-    int logFlag = 0;
-    char* peropt = NULL;
-    char scaleopt = 'F';
-    char* logopt = NULL;
-    char* outopt = NULL;
-
-    struct timespec start, end;
-
-    int i;
+	int scaleFlag = 0;
+	char* peropt = NULL;
+	char scaleopt = 'F';
+	char* logopt = NULL;
+	char* outopt = NULL;
+    	int i;
     
     
     static struct option long_options[] = {
