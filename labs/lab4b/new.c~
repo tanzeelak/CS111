@@ -41,17 +41,9 @@ void* printer()
 
 
 		if (temp_type == 0)
-		{
 			printf("temp F = %f\n", temp_farh);
-			if (l_flag)
-				fprintf(lfd, "temp F = %f\n", temp_farh);
-		}
 		else 
-		{
 			printf("temp C = %f\n", temp_celc);
-			if (l_flag)
-				fprintf(lfd, "temp C = %f\n", temp_celc);
-		}
 		
 		time(&timer);
 		timeInfo = localtime(&timer);
