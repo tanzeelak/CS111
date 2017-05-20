@@ -5,8 +5,10 @@
 
 build:
 	gcc -pthread -g -lrt -std=gnu99 -o lab4b lab4b.c
+	gcc -pthread -lmraa -g -lrt -std=gnu99 -o test2 test2.c
 
 clean:
+
 	@rm -f lab2_list *.txt *.tar.gzw *.csv
 
 dist:
