@@ -4,7 +4,7 @@
 
 
 build:
-	gcc -lmraa -lm -g -lrt -std=gnu99 -o lab4b lab4b.c
+	gcc -pthread -lmraa -lm -o new new.c
 
 clean:
 
