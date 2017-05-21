@@ -139,7 +139,6 @@ tempSensor = mraa_aio_init(0);
 
 	while(1)
   	{	
-		//printer();
 		int val = poll(fd, 1, 0);
 		if (val > 0 ) {
 
@@ -172,7 +171,6 @@ tempSensor = mraa_aio_init(0);
   						fclose(lfd);
   					}
   					fprintf(stdout,"SHUTDOWN\n");
-  					// pthread_join(temperatureThread, NULL):
   					break;
   				}
   				else if(strcmp(commandBuffer, "STOP")==0)
@@ -197,7 +195,7 @@ tempSensor = mraa_aio_init(0);
   					if(stop_flag==1)
   					{
   						stop_flag=0;
-  						fprintf(stdout,"START\n");
+  						//fprintf(stdout,"START\n");
   					}
 
   				}
@@ -219,7 +217,9 @@ tempSensor = mraa_aio_init(0);
 		}
 		}
   		if (stop_flag == 0)
-			printer();	
+		{
+			printer();
+		}	
 	}
 
   	exit(0);
