@@ -15,12 +15,9 @@
 #include <poll.h>
 
 float tempC,tempF;
-
 int tempType=0;
-
 FILE* lfd;
-int per=1;
-
+int perNum=1;
 time_t timer;
 char timeBuffer[9];
 struct tm* timeInfo; 
@@ -81,7 +78,7 @@ void* printer()
 			exit(0);
 		}
 
-		sleep(per);
+		sleep(perNum);
 
 		if(shutdownFlag==1)
 			exit(0);
@@ -93,7 +90,10 @@ int main(int argc, char** argv)
 {
 	int optParse = 0;
 	int scaleFlag = 0;
-       	int perFlag = 0; 	
+       	int perFlag = 0;
+	char* logopt = NULL;
+	char* scaleopt = NULL;
+	char* peropt = NULL;
 	btn = mraa_gpio_init(3);
 	
 	tempSensor = mraa_aio_init(0);
@@ -114,22 +114,35 @@ int main(int argc, char** argv)
     	switch (optParse) {
         	case 'l':
         		logFlag = 1;
-        		lfd = fopen(optarg, "w");
+			logopt = optarg;
             		break;
         	case 's': 
 			scaleFlag = 1;
-        		if(optarg)
+			scaleopt = optarg;
 	            break;
 	        case 'p':
-			perFlag = 0; 
-	        	per = atoi(optarg);
+			perFlag = 1;
+		       	peropt = optarg;	
 	        	break;
         	default:
-        		fprintf(stderr, "INVALID OPTION(S)\nCorrect Usage: --log=\"logfile\" --scale=C --period=500\nTerminating...\n");
+        		fprintf(stderr, "Proper usage of options: --log=logfile --scale=tempType --period=#periods \n");
 	         	exit(1);
 	    }
 	}
-  	
+
+	if (logFlag)
+	{
+        	lfd = fopen(logopt, "w");
+	}
+	if (scaleFlag)
+	{
+	}
+	if (perFlag)
+	{
+		perNum = atoi(peropt);
+	}
+
+
 	fd[0].fd = STDIN_FILENO;
 	fd[0].events = POLLIN | POLLHUP | POLLERR;
 
@@ -218,10 +231,10 @@ int main(int argc, char** argv)
 				else if (strncmp(commandBuffer, "PERIOD=", 7) == 0) {
 					int j = atoi(commandBuffer+7);
 					if (j>0)
-						per = j;
+						perNum = j;
 					if (logFlag == 1)
 					{
-						fprintf(lfd, "PERIOD=%i", per);
+						fprintf(lfd, "PERIOD=%i", perNum);
 					}
 				}
 
