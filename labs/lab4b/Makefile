@@ -4,10 +4,10 @@
 
 
 build:
-	gcc -pthread -lmraa -lm -g -o lab4b lab4b.c
+	gcc -lmraa -lm -g -o lab4b lab4b.c
 
 check:
-	./lab4b
+	./lab4b --scale=C
 
 clean:
 

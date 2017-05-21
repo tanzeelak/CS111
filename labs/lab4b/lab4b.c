@@ -6,7 +6,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <pthread.h>
 #include <mraa/aio.h>
 #include <math.h>
 #include <ctype.h>
@@ -34,56 +33,54 @@ int logFlag = 0;
 
 void* printer()
 {
-		rawTemperature = mraa_aio_read(tempSensor);
-		double R = 1023.0/((double)rawTemperature) - 1.0;
-		R = 100000.0*R;
-		tempC  = 1.0/(log(R/100000.0)/B + 1/298.15) - 273.15;
-		tempF = tempC * 9/5 + 32;
+	rawTemperature = mraa_aio_read(tempSensor);
+	double R = 1023.0/((double)rawTemperature) - 1.0;
+	R = 100000.0*R;
+	tempC  = 1.0/(log(R/100000.0)/B + 1/298.15) - 273.15;
+	tempF = tempC * 9/5 + 32;
+
+	time(&timer);
+	timeInfo = localtime(&timer);
+	strftime(timeBuffer, 9, "%H:%M:%S", timeInfo);
 	
-		time(&timer);
-		timeInfo = localtime(&timer);
-		strftime(timeBuffer, 9, "%H:%M:%S", timeInfo);
-		
-		if (tempType == 0)
+	if (tempType == 0)
+	{
+		fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
+		if (logFlag)
+			fprintf(lfd, "%s %.1f\n", timeBuffer, tempF);
+	}
+	else 
+	{
+		fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
+		if (logFlag)
+			fprintf(lfd, "%s %.1f\n", timeBuffer, tempC);
+	}
+	
+	if(logFlag)
+		fflush(lfd);
+
+	btnVal = mraa_gpio_read(btn);
+	if (btnVal == -1)
+	{
+		fprintf(stderr, "rip \n");
+		exit(2);
+	}
+	else if (btnVal == 1)
+	{
+		shutdownFlag = 1;
+		fprintf(stdout, "SHUTDOWN\n");
+		if (logFlag == 1)
 		{
-			fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
-			if (logFlag)
-				fprintf(lfd, "%s %.1f\n", timeBuffer, tempF);
-		}
-		else 
-		{
-			fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
-			if (logFlag)
-				fprintf(lfd, "%s %.1f\n", timeBuffer, tempC);
-		}
-		
-		if(logFlag)
+			fprintf(lfd, "SHUTDOWN\n");
 			fflush(lfd);
-
-		btnVal = mraa_gpio_read(btn);
-		if (btnVal == -1)
-		{
-			fprintf(stderr, "rip \n");
-			exit(2);
 		}
-		else if (btnVal == 1)
-		{
-			shutdownFlag = 1;
-			fprintf(stdout, "SHUTDOWN\n");
-			if (logFlag == 1)
-			{
-				fprintf(lfd, "SHUTDOWN\n");
-				fflush(lfd);
-			}
-			exit(0);
-		}
+		exit(0);
+	}
 
-		sleep(perNum);
+	sleep(perNum);
 
-		if(shutdownFlag==1)
-			exit(0);
-
-
+	if(shutdownFlag==1)
+		exit(0);
 }
 
 int main(int argc, char** argv)
@@ -149,10 +146,10 @@ int main(int argc, char** argv)
 	while(1)
   	{	
 		int val = poll(fd, 1, 0);
-		if (val > 0 ) {
 
-		if (fd[0].revents & POLLIN) {	
-  			char commandBuffer[1024];
+		if (fd[0].revents & POLLIN) 
+		{	
+  			char commBuff[1024];
 			char c;
 			int buffIndex = 0;
 	  		while (1)
@@ -161,15 +158,15 @@ int main(int argc, char** argv)
   				{
 					if (c == '\n')
 					{
-						commandBuffer[buffIndex] = '\0';
+						commBuff[buffIndex] = '\0';
 						buffIndex = 0; 
 						break;
 					}
-					commandBuffer[buffIndex] = c;
+					commBuff[buffIndex] = c;
 					buffIndex++;	
 				}
 			}
-  			if(strcmp(commandBuffer,"OFF") == 0)
+  			if(strcmp(commBuff,"OFF") == 0)
   			{
   				stopFlag=1;
   				shutdownFlag=1;
@@ -182,69 +179,69 @@ int main(int argc, char** argv)
   				fprintf(stdout,"SHUTDOWN\n");
   				break;
   			}
-  				else if(strcmp(commandBuffer, "STOP")==0)
+  			else if(strcmp(commBuff, "STOP")==0)
+  			{
+	  			if(logFlag==1)
   				{
-	  				if(logFlag==1)
-  					{
-  						fprintf(lfd,"STOP\n");
-  						fflush(lfd);
-  					}
-	  				if(stopFlag==0)
-  					{
-  						stopFlag=1;
-  					}
-  				}	
-  				else if(strcmp(commandBuffer, "START")==0)
+  					fprintf(lfd,"STOP\n");
+  					fflush(lfd);
+  				}
+	  			if(stopFlag==0)
   				{
-  					if(logFlag==1)
-  					{
-  						fprintf(lfd, "START\n");
-  						fflush(lfd);
-  					}
-  					if(stopFlag==1)
-  					{
-  						stopFlag=0;
-  					}
+  					stopFlag=1;
+  				}
+  			}	
+  			else if(strcmp(commBuff, "START")==0)
+  			{
+  				if(logFlag==1)
+  				{
+  					fprintf(lfd, "START\n");
+  					fflush(lfd);
+  				}
+  				if(stopFlag==1)
+  				{
+  					stopFlag=0;
+  				}
 
-  				}
-	  			else if(strcmp(commandBuffer,"SCALE=F")==0)
+			}
+  			else if(strcmp(commBuff,"SCALE=F")==0)
+  			{
+  				fprintf(stdout,"SCALE=F\n");
+  				if(logFlag==1)
   				{
-  					fprintf(stdout,"SCALE=F\n");
-  					if(logFlag==1)
-  					{
-  						fprintf(lfd, "SCALE=F\n");
-  						fflush(lfd);
-  					}
-  					tempType=0;
+  					fprintf(lfd, "SCALE=F\n");
+  					fflush(lfd);
+  				}
+  				tempType=0;
 
-  				}
-  				else if(strcmp(commandBuffer,"SCALE=C")==0)
+			}
+ 			else if(strcmp(commBuff,"SCALE=C")==0)
+  			{
+  				fprintf(stdout,"SCALE=C\n");
+  				if(logFlag==1)
   				{
-  					fprintf(stdout,"SCALE=C\n");
-  					if(logFlag==1)
-  					{
-  						fprintf(lfd, "SCALE=C\n");
-  						fflush(lfd);
-  					}
-  					tempType=1;
+  					fprintf(lfd, "SCALE=C\n");
+  					fflush(lfd);
   				}
-				else if (strncmp(commandBuffer, "PERIOD=", 7) == 0) {
-					int j = atoi(commandBuffer+7);
-					if (j>0)
-						perNum = j;
-					if (logFlag == 1)
-					{
-						fprintf(lfd, "PERIOD=%i", perNum);
-					}
+  				tempType=1;
+  			}
+			else if (strncmp(commBuff, "PERIOD=", 7) == 0) 
+			{
+				int j = atoi(commBuff+7);
+				if (j>0)
+					perNum = j;
+				if (logFlag == 1)
+				{
+					fprintf(lfd, "PERIOD=%i", perNum);
 				}
-
-		}
+			}
+	
 		}
   		if (stopFlag == 0)
-		{
+		{	
 			printer();
 		}	
 	}
 
-  	exit(0);
+ 	exit(0);
 }
