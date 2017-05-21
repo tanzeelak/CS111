@@ -87,8 +87,6 @@ void* printer()
 			exit(0);
 		}
 
-		sleep(2);
-
 		if(shutdown_flag==1)
 			exit(0);
 	}
