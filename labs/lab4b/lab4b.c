@@ -133,6 +133,8 @@ int main(int argc, char** argv)
 	}
 	if (scaleFlag)
 	{
+		if (scaleopt[0] == 'C')
+			tempType = 1;
 	}
 	if (perFlag)
 	{

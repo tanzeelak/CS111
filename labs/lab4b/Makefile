@@ -7,7 +7,7 @@ build:
 	gcc -lmraa -lm -g -o lab4b lab4b.c
 
 check:
-	./lab4b --scale=C
+	./lab4b
 
 clean:
 
