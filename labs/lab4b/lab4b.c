@@ -120,8 +120,6 @@ int main(int argc, char** argv)
 	         	exit(1);
 	    }
 	}
-
-	
   	
 	fd[0].fd = STDIN_FILENO;
 	fd[0].events = POLLIN | POLLHUP | POLLERR;
@@ -155,7 +153,7 @@ int main(int argc, char** argv)
   				shutdown_flag=1;
   				if(l_flag==1)
   				{
-  					fprintf(lfd,"SHUTDOWN\n");
+  					fprintf(lfd,"OFF\nSHUTDOWN\n");
   					fflush(lfd);
   					fclose(lfd);
   				}
@@ -212,6 +210,10 @@ int main(int argc, char** argv)
 					int j = atoi(commandBuffer+7);
 					if (j>0)
 						per = j;
+					if (l_flag == 1)
+					{
+						fprintf(lfd, "PERIOD=%i", per);
+					}
 				}
 
 		}
