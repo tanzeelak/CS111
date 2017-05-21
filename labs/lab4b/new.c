@@ -96,10 +96,6 @@ void* printer()
 
 }
 
-void* btnExit()
-{
-	}
-
 int main(int argc, char** argv)
 {
 	int opt=0,per=1, scale_flag=0;
