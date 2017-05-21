@@ -14,9 +14,9 @@
 #include <time.h>
 #include <poll.h>
 
-float temp_celc,temp_farh;
+float tempC,tempF;
 
-int temp_type=0, stop_flag=0, shutdown_flag=0, l_flag=0;
+int tempType=0, stopFlag=0, shutdownFlag=0, logFlag=0;
 FILE* lfd;
 int per=1;
 
@@ -36,27 +36,27 @@ void* printer()
 		rawTemperature = mraa_aio_read(tempSensor);
 		double R = 1023.0/((double)rawTemperature) - 1.0;
 		R = 100000.0*R;
-		temp_celc  = 1.0/(log(R/100000.0)/B + 1/298.15) - 273.15;
-		temp_farh = temp_celc * 9/5 + 32;
+		tempC  = 1.0/(log(R/100000.0)/B + 1/298.15) - 273.15;
+		tempF = tempC * 9/5 + 32;
 	
 		time(&timer);
 		timeInfo = localtime(&timer);
 		strftime(timeBuffer, 9, "%H:%M:%S", timeInfo);
 		
-		if (temp_type == 0)
+		if (tempType == 0)
 		{
-			fprintf(stdout,"%s %.1f\n", timeBuffer, temp_farh);
-			if (l_flag)
-				fprintf(lfd, "%s %.1f\n", timeBuffer, temp_farh);
+			fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
+			if (logFlag)
+				fprintf(lfd, "%s %.1f\n", timeBuffer, tempF);
 		}
 		else 
 		{
-			fprintf(stdout,"%s %.1f\n", timeBuffer, temp_celc);
-			if (l_flag)
-				fprintf(lfd, "%s %.1f\n", timeBuffer, temp_celc);
+			fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
+			if (logFlag)
+				fprintf(lfd, "%s %.1f\n", timeBuffer, tempC);
 		}
 		
-		if(l_flag)
+		if(logFlag)
 			fflush(lfd);
 
 		btnVal = mraa_gpio_read(btn);
@@ -67,9 +67,9 @@ void* printer()
 		}
 		else if (btnVal == 1)
 		{
-			shutdown_flag = 1;
+			shutdownFlag = 1;
 			fprintf(stdout, "SHUTDOWN\n");
-			if (l_flag == 1)
+			if (logFlag == 1)
 			{
 				fprintf(lfd, "SHUTDOWN\n");
 				fflush(lfd);
@@ -79,7 +79,7 @@ void* printer()
 
 		sleep(per);
 
-		if(shutdown_flag==1)
+		if(shutdownFlag==1)
 			exit(0);
 
 
@@ -88,11 +88,11 @@ void* printer()
 int main(int argc, char** argv)
 {
 	
-	int opt=0, scale_flag=0;
+	int optParse=0, scale_flag=0;
 	btn = mraa_gpio_init(3);
 	tempSensor = mraa_aio_init(0);
 	mraa_gpio_dir(btn, MRAA_GPIO_IN);
-	static const struct option long_opts[] =
+	static const struct option long_options[] =
 	{
         	{"log",required_argument,NULL,'l',},
         	{"scale",required_argument,NULL,'s'},
@@ -102,11 +102,11 @@ int main(int argc, char** argv)
 
 
 
-	while (-1 != (opt = getopt_long(argc, argv, "", long_opts, NULL))) 
+	while (-1 != (optParse = getopt_long(argc, argv, "", long_options, NULL))) 
 	{
-    	switch (opt) {
+    	switch (optParse) {
         	case 'l':
-        		l_flag=1;
+        		logFlag=1;
         		lfd = fopen(optarg, "w");
             	break;
         	case 's': 
@@ -149,9 +149,9 @@ int main(int argc, char** argv)
 			}
   			if(strcmp(commandBuffer,"OFF") == 0)
   			{
-  				stop_flag=1;
-  				shutdown_flag=1;
-  				if(l_flag==1)
+  				stopFlag=1;
+  				shutdownFlag=1;
+  				if(logFlag==1)
   				{
   					fprintf(lfd,"OFF\nSHUTDOWN\n");
   					fflush(lfd);
@@ -162,55 +162,55 @@ int main(int argc, char** argv)
   			}
   				else if(strcmp(commandBuffer, "STOP")==0)
   				{
-	  				if(l_flag==1)
+	  				if(logFlag==1)
   					{
   						fprintf(lfd,"STOP\n");
   						fflush(lfd);
   					}
-	  				if(stop_flag==0)
+	  				if(stopFlag==0)
   					{
-  						stop_flag=1;
+  						stopFlag=1;
   					}
   				}	
   				else if(strcmp(commandBuffer, "START")==0)
   				{
-  					if(l_flag==1)
+  					if(logFlag==1)
   					{
   						fprintf(lfd, "START\n");
   						fflush(lfd);
   					}
-  					if(stop_flag==1)
+  					if(stopFlag==1)
   					{
-  						stop_flag=0;
+  						stopFlag=0;
   					}
 
   				}
 	  			else if(strcmp(commandBuffer,"SCALE=F")==0)
   				{
   					fprintf(stdout,"SCALE=F\n");
-  					if(l_flag==1)
+  					if(logFlag==1)
   					{
   						fprintf(lfd, "SCALE=F\n");
   						fflush(lfd);
   					}
-  					temp_type=0;
+  					tempType=0;
 
   				}
   				else if(strcmp(commandBuffer,"SCALE=C")==0)
   				{
   					fprintf(stdout,"SCALE=C\n");
-  					if(l_flag==1)
+  					if(logFlag==1)
   					{
   						fprintf(lfd, "SCALE=C\n");
   						fflush(lfd);
   					}
-  					temp_type=1;
+  					tempType=1;
   				}
 				else if (strncmp(commandBuffer, "PERIOD=", 7) == 0) {
 					int j = atoi(commandBuffer+7);
 					if (j>0)
 						per = j;
-					if (l_flag == 1)
+					if (logFlag == 1)
 					{
 						fprintf(lfd, "PERIOD=%i", per);
 					}
@@ -218,7 +218,7 @@ int main(int argc, char** argv)
 
 		}
 		}
-  		if (stop_flag == 0)
+  		if (stopFlag == 0)
 		{
 			printer();
 		}	
