@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <getopt.h>
 #include <time.h>
+#include <poll.h>
 
 float temp_celc,temp_farh;
 
@@ -24,16 +25,15 @@ char timeBuffer[9];
 struct tm* timeInfo; 
 mraa_aio_context tempSensor;
 mraa_gpio_context btn;
-
-void* printer()
-{
+struct pollfd fd [1];
 	const int B = 4275;
-	tempSensor = mraa_aio_init(0);	
+	
 	int rawTemperature;
 	int btnVal = 0; 
 
-	while(1)
-	{
+
+void* printer()
+{
 		rawTemperature = mraa_aio_read(tempSensor);
 		double R = 1023.0/((double)rawTemperature) - 1.0;
 		R = 100000.0*R;
@@ -52,7 +52,6 @@ void* printer()
 
 		if (temp_type == 0)
 		{
-		//	snprintf(tempOut, 64, "TEMP=%.1f\n", temp_celc)
 			printf("%f\n", temp_farh);
 			if (l_flag)
 				fprintf(lfd, "%f\n", temp_farh);
@@ -91,7 +90,6 @@ void* printer()
 
 		if(shutdown_flag==1)
 			exit(0);
-	}
 
 
 }
@@ -100,7 +98,7 @@ int main(int argc, char** argv)
 {
 	int opt=0,per=1, scale_flag=0;
 	btn = mraa_gpio_init(3);
-
+tempSensor = mraa_aio_init(0);	
 	static const struct option long_opts[] =
 	{
         	{"log",required_argument,NULL,'l',},
@@ -134,82 +132,77 @@ int main(int argc, char** argv)
 	    }
 	}
 
-	printer();
-/*	pthread_t tempThread;
-  	if (pthread_create(&tempThread, NULL, (void *)printer, NULL) < 0) {
-  		fprintf(stderr,"ERROR cannot create thread");
-  		exit(1);
-  	}
+	
+  	
+	fd[0].fd = STDIN_FILENO;
+	fd[0].events = POLLIN | POLLHUP | POLLERR;
 
-	pthread_t btnThread;
-	if (pthread_create(&btnThread, NULL, (void *)btnExit, NULL) < 0) {
-		fprintf(stderr, "lol rip thread");
-		exit(1);
-	}
-*/
-  	while(1)
-  	{		
-  		char commandBuffer[1024];
+	while(1)
+  	{	
+		printer();
+		int val = poll(fd, 1, 0);
+		if (fd[0].revents & POLLIN) {	
+  			char commandBuffer[1024];
 
-  		if(read(0, commandBuffer, 1024)>0)
-  		{
-  			if(strcmp(commandBuffer,"OFF") == 0)
+	  		if(read(0, commandBuffer, 1024)>0)
   			{
-  				stop_flag=1;
-  				shutdown_flag=1;
-  				if(l_flag==1)
+  				if(strcmp(commandBuffer,"OFF") == 0)
   				{
-  					fprintf(lfd,"SHUTDOWN\n");
-  					fflush(lfd);
-  					fclose(lfd);
+  					stop_flag=1;
+  					shutdown_flag=1;
+  					if(l_flag==1)
+  					{
+  						fprintf(lfd,"SHUTDOWN\n");
+  						fflush(lfd);
+  						fclose(lfd);
+  					}
+  					fprintf(stdout,"SHUTDOWN\n");
+  					// pthread_join(temperatureThread, NULL):
+  					break;
   				}
-  				fprintf(stdout,"SHUTDOWN\n");
-  				// pthread_join(temperatureThread, NULL):
-  				break;
-  			}
-  			else if(strcmp(commandBuffer, "STOP")==0)
-  			{
-  				if(l_flag==1)
+  				else if(strcmp(commandBuffer, "STOP")==0)
+  				{
+	  				if(l_flag==1)
   					{
   						fprintf(lfd,"STOP\n");
   						fflush(lfd);
   					}
-  				if(stop_flag==0)
+	  				if(stop_flag==0)
   					{
   						stop_flag=1;
   					}
-  			}
-  			else if(strcmp(commandBuffer, "START")==0)
-  			{
-  				if(l_flag==1)
+  				}	
+  				else if(strcmp(commandBuffer, "START")==0)
+  				{
+  					if(l_flag==1)
   					{
   						fprintf(lfd, "START\n");
   						fflush(lfd);
   					}
-  				if(stop_flag==1)
-  				{
-  					stop_flag=0;
-  					fprintf(stdout,"START\n");
-  				}
+  					if(stop_flag==1)
+  					{
+  						stop_flag=0;
+  						fprintf(stdout,"START\n");
+  					}
 
-  			}
-  			else if(strcmp(commandBuffer,"SCALE=F")==0)
-  			{
-  				fprintf(stdout,"SCALE=F\n");
-  				if(l_flag==1)
-  				{
-  					fprintf(lfd, "SCALE=F\n");
-  					fflush(lfd);
   				}
-  				temp_type=0;
+	  			else if(strcmp(commandBuffer,"SCALE=F")==0)
+  				{
+  					fprintf(stdout,"SCALE=F\n");
+  					if(l_flag==1)
+  					{
+  						fprintf(lfd, "SCALE=F\n");
+  						fflush(lfd);
+  					}
+  					temp_type=0;
 
+  				}
+  				else if(strcmp(commandBuffer,"SCALE=C")==0)
+  				{
+  					;//fprintf()
+  				}
   			}
-  			else if(strcmp(commandBuffer,"SCALE=C")==0)
-  			{
-  				;//fprintf()
-  			}
-  		}
-  	
+		}
   	}
 
   	exit(0);
