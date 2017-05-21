@@ -23,7 +23,7 @@ time_t timer;
 char timeBuffer[9];
 struct tm* timeInfo; 
 mraa_aio_context tempSensor;
-mraa_gpio_context button;
+mraa_gpio_context btn;
 
 void* printer()
 {
@@ -38,26 +38,32 @@ void* printer()
 		R = 100000.0*R;
 		temp_celc  = 1.0/(log(R/100000.0)/B + 1/298.15) - 273.15;
 		temp_farh = temp_celc * 9/5 + 32;
-
-
-		if (temp_type == 0)
-		{
-			printf("temp F = %f\n", temp_farh);
-			if (l_flag)
-				fprintf(lfd, "temp F = %f\n", temp_farh);
-		}
-		else 
-		{
-			printf("temp C = %f\n", temp_celc);
-			if (l_flag)
-				fprintf(lfd, "temp C = %f\n", temp_celc);
-		}
-		
+	
 		time(&timer);
 		timeInfo = localtime(&timer);
 		strftime(timeBuffer, 9, "%H:%M:%S", timeInfo);
 		
 		printf("%s\n", timeBuffer);
+		if (l_flag)
+			fprintf(lfd, "%s\n", timeBuffer);
+
+		char tempOut[64];		
+
+		if (temp_type == 0)
+		{
+		//	snprintf(tempOut, 64, "TEMP=%.1f\n", temp_celc)
+			printf("%f\n", temp_farh);
+			if (l_flag)
+				fprintf(lfd, "%f\n", temp_farh);
+		}
+		else 
+		{
+			printf("%f\n", temp_celc);
+			if (l_flag)
+				fprintf(lfd, "%f\n", temp_celc);
+		}
+		
+	
 
 		if(l_flag)
 			fflush(lfd);
@@ -70,6 +76,32 @@ void* printer()
 	}
 
 
+}
+
+void* btnExit()
+{
+	btn = mraa_gpio_init(3);
+	int btnVal = 0;
+	while(1)
+	{
+		btnVal = mraa_gpio_read(btn);
+		if (btnVal == -1)
+		{
+			fprintf(stderr, "rip \n");
+			exit(2);
+		}
+		else if (btnVal == 1)
+		{
+			shutdown_flag = 1;
+			fprintf(stdout, "SHUTDOWN\n");
+			if (l_flag == 1)
+			{
+				fprintf(lfd, "SHUTDOWN\n");
+				fflush(lfd);
+			}
+			break;
+		}
+	}
 }
 
 int main(int argc, char** argv)
@@ -115,8 +147,12 @@ int main(int argc, char** argv)
   		exit(1);
   	}
 
-  	button = mraa_gpio_init(3);
-  	int button_value=0;
+	pthread_t btnThread;
+	if (pthread_create(&btnThread, NULL, (void *)btnExit, NULL) < 0) {
+		fprintf(stderr, "lol rip thread");
+		exit(1);
+	}
+
   	while(1)
   	{
   		
@@ -180,25 +216,7 @@ int main(int argc, char** argv)
   				;//fprintf()
   			}
   		}
-  		button_value = mraa_gpio_read(button);
-
-  		if(button_value==-1)
-  		{	
-  			fprintf(stderr, "FATAL ERROR!\nTERMINATING\n");
-  			exit(2);
-  		}
-  		else if(button_value==1)
-  		{
-  			stop_flag=1;
-  			shutdown_flag=1;
-  			fprintf(stdout,"SHUTDOWN\n");
-  			if(l_flag==1)
-  			{
-  				fprintf(lfd,"SHUTDOWN\n");
-  				fflush(lfd);
-  			}
-  			break;
-  		}
+  	
   	}
 
   	exit(0);
