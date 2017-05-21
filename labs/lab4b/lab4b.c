@@ -16,7 +16,8 @@
 
 float tempC,tempF;
 
-int tempType=0, stopFlag=0, shutdownFlag=0, logFlag=0;
+int tempType=0;
+
 FILE* lfd;
 int per=1;
 
@@ -29,6 +30,9 @@ struct pollfd fd [1];
 const int B = 4275;
 int rawTemperature;
 int btnVal = 0; 
+int stopFlag = 0;
+int shutdownFlag = 0;
+int logFlag = 0; 
 
 
 void* printer()
@@ -87,32 +91,37 @@ void* printer()
 
 int main(int argc, char** argv)
 {
-	
-	int optParse=0, scale_flag=0;
+	int optParse = 0;
+	int scaleFlag = 0;
+       	int perFlag = 0; 	
 	btn = mraa_gpio_init(3);
+	
 	tempSensor = mraa_aio_init(0);
 	mraa_gpio_dir(btn, MRAA_GPIO_IN);
+	
 	static const struct option long_options[] =
 	{
-        	{"log",required_argument,NULL,'l',},
-        	{"scale",required_argument,NULL,'s'},
-       		{"period",required_argument,NULL,'p'},
-        	{0, 0, 0, 0} // end of array
+        	{"log",required_argument,0,'l',},
+        	{"scale",required_argument,0,'s'},
+       		{"period",required_argument,0,'p'},
+        	{0, 0, 0, 0}
 	};
 
 
-
-	while (-1 != (optParse = getopt_long(argc, argv, "", long_options, NULL))) 
+	int option_index = 0;
+	while ((optParse = getopt_long(argc, argv, "", long_options, &option_index)) != -1) 
 	{
     	switch (optParse) {
         	case 'l':
-        		logFlag=1;
+        		logFlag = 1;
         		lfd = fopen(optarg, "w");
-            	break;
+            		break;
         	case 's': 
+			scaleFlag = 1;
         		if(optarg)
 	            break;
 	        case 'p':
+			perFlag = 0; 
 	        	per = atoi(optarg);
 	        	break;
         	default:
