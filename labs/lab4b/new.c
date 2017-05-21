@@ -86,7 +86,7 @@ void* printer()
 			exit(0);
 		}
 
-		sleep(2);
+		sleep(1);
 
 		if(shutdown_flag==1)
 			exit(0);
@@ -195,7 +195,6 @@ tempSensor = mraa_aio_init(0);
   					if(stop_flag==1)
   					{
   						stop_flag=0;
-  						//fprintf(stdout,"START\n");
   					}
 
   				}
@@ -212,7 +211,13 @@ tempSensor = mraa_aio_init(0);
   				}
   				else if(strcmp(commandBuffer,"SCALE=C")==0)
   				{
-  					;//fprintf()
+  					fprintf(stdout,"SCALE=C\n");
+  					if(l_flag==1)
+  					{
+  						fprintf(lfd, "SCALE=C\n");
+  						fflush(lfd);
+  					}
+  					temp_type=1;
   				}
 		}
 		}
