@@ -4,7 +4,7 @@
 
 
 build:
-	gcc -pthread -lmraa -lm -o new new.c
+	gcc -pthread -lmraa -lm -g -o new new.c
 
 clean:
 

@@ -44,7 +44,7 @@ void* printer()
 		timeInfo = localtime(&timer);
 		strftime(timeBuffer, 9, "%H:%M:%S", timeInfo);
 		
-		printf("%s\n", timeBuffer);
+		fprintf(stdout,"%s\n", timeBuffer);
 		if (l_flag)
 			fprintf(lfd, "%s\n", timeBuffer);
 
@@ -52,15 +52,15 @@ void* printer()
 
 		if (temp_type == 0)
 		{
-			printf("%f\n", temp_farh);
+			fprintf(stdout,"%.1f\n", temp_farh);
 			if (l_flag)
-				fprintf(lfd, "%f\n", temp_farh);
+				fprintf(lfd, "%.1f\n", temp_farh);
 		}
 		else 
 		{
-			printf("%f\n", temp_celc);
+			fprintf(stdout,"%.1f\n", temp_celc);
 			if (l_flag)
-				fprintf(lfd, "%f\n", temp_celc);
+				fprintf(lfd, "%.1f\n", temp_celc);
 		}
 		
 	
@@ -86,7 +86,7 @@ void* printer()
 			exit(0);
 		}
 
-		sleep(1);
+		sleep(per);
 
 		if(shutdown_flag==1)
 			exit(0);
@@ -96,9 +96,11 @@ void* printer()
 
 int main(int argc, char** argv)
 {
-	int opt=0,per=1, scale_flag=0;
+	
+	int opt=0, scale_flag=0;
 	btn = mraa_gpio_init(3);
-tempSensor = mraa_aio_init(0);	
+	tempSensor = mraa_aio_init(0);
+	mraa_gpio_dir(btn, MRAA_GPIO_IN);
 	static const struct option long_opts[] =
 	{
         	{"log",required_argument,NULL,'l',},
@@ -121,10 +123,6 @@ tempSensor = mraa_aio_init(0);
 	            break;
 	        case 'p':
 	        	per = atoi(optarg);
-	        	if(per<=0)
-	        	{
-	        		fprintf(stderr, "Bad argument, continuing with old value of period...\nDefaule value is 1 second\n");
-	        	}
 	        	break;
         	default:
         		fprintf(stderr, "INVALID OPTION(S)\nCorrect Usage: --log=\"logfile\" --scale=C --period=500\nTerminating...\n");
@@ -219,6 +217,12 @@ tempSensor = mraa_aio_init(0);
   					}
   					temp_type=1;
   				}
+				else if (strncmp(commandBuffer, "PERIOD=", 7) == 0) {
+				int j = atoi(commandBuffer+7);
+				if (j>0)
+					per = j;
+				}
+
 		}
 		}
   		if (stop_flag == 0)
