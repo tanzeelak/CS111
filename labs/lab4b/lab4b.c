@@ -1,128 +1,226 @@
-#include <getopt.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#include <string.h>
-#include <signal.h>
-#include <errno.h>
+#include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <pthread.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <pthread.h>
 #include <mraa/aio.h>
-#include <unistd.h>
 #include <math.h>
 #include <ctype.h>
-#define print_err() do {if (errno) {fprintf(stderr, "error %s", strerr(errno)); exit(1);}} while(0)
+#include <getopt.h>
+#include <time.h>
+#include <poll.h>
 
-float tempC, tempF;
-int tempType = 0;
-int stopFlag = 0;
-int shutdownFlag = 0;
-int logFlag = 0;
+float temp_celc,temp_farh;
+
+int temp_type=0, stop_flag=0, shutdown_flag=0, l_flag=0;
 FILE* lfd;
-int perFlag=0;
+int per=1;
 
 time_t timer;
-char timeBuff[9];
-struct tm* timeInfo;
+char timeBuffer[9];
+struct tm* timeInfo; 
 mraa_aio_context tempSensor;
-mraa_gpio_context button;
+mraa_gpio_context btn;
+struct pollfd fd [1];
 const int B = 4275;
-int rawTemp;
+int rawTemperature;
+int btnVal = 0; 
 
-void sysFailed(char* sysCall, int exitNum)
+
+void* printer()
 {
-  fprintf(stderr, "%s failed: %s\n", sysCall, strerror(errno));
-  exit(exitNum);
-}
-
-
-void signal_callback_handler(int signum)
-{
-  fprintf(stderr,"Caught SIGSEGV %d\n", signum);
-  exit(1);
-}
-
-void* print() 
-{
-	tempSensor = mraa_aio_init(0);
-	while(1)
-	{
-		rawTemp = mraa_aio_read(tempSensor);
-		double R = 1023.0/((double)rawTemp) - 1.0;
-		R = 10000.0*R;
-		tempC  = 1.0/(log(R/100000.0)/B + 1/298.15) - 273.15;
-		tempF = tempC * 9/5 + 32;
-
+		rawTemperature = mraa_aio_read(tempSensor);
+		double R = 1023.0/((double)rawTemperature) - 1.0;
+		R = 100000.0*R;
+		temp_celc  = 1.0/(log(R/100000.0)/B + 1/298.15) - 273.15;
+		temp_farh = temp_celc * 9/5 + 32;
+	
 		time(&timer);
 		timeInfo = localtime(&timer);
-		strftime(timeBuff, 9, "%H:%M:%S", timeInfo);
-	}
+		strftime(timeBuffer, 9, "%H:%M:%S", timeInfo);
+		
+		if (temp_type == 0)
+		{
+			fprintf(stdout,"%s %.1f\n", timeBuffer, temp_farh);
+			if (l_flag)
+				fprintf(lfd, "%s %.1f\n", timeBuffer, temp_farh);
+		}
+		else 
+		{
+			fprintf(stdout,"%s %.1f\n", timeBuffer, temp_celc);
+			if (l_flag)
+				fprintf(lfd, "%s %.1f\n", timeBuffer, temp_celc);
+		}
+		
+		if(l_flag)
+			fflush(lfd);
+
+		btnVal = mraa_gpio_read(btn);
+		if (btnVal == -1)
+		{
+			fprintf(stderr, "rip \n");
+			exit(2);
+		}
+		else if (btnVal == 1)
+		{
+			shutdown_flag = 1;
+			fprintf(stdout, "SHUTDOWN\n");
+			if (l_flag == 1)
+			{
+				fprintf(lfd, "SHUTDOWN\n");
+				fflush(lfd);
+			}
+			exit(0);
+		}
+
+		sleep(per);
+
+		if(shutdown_flag==1)
+			exit(0);
+
+
 }
 
-
-int main(int argc, char *argv[])
+int main(int argc, char** argv)
 {
-	int optParse = 0;
-	int perNum = 0; 
-	int scaleFlag = 0;
-	char* peropt = NULL;
-	char scaleopt = 'F';
-	char* logopt = NULL;
-	char* outopt = NULL;
-    	int i;
-    
-    
-    static struct option long_options[] = {
-      {"period", required_argument, 0, 'p'},
-      {"scale", required_argument, 0, 's'},
-      {"log", required_argument, 0, 'l'},
-      {0,0,0,0}
-    };
+	
+	int opt=0, scale_flag=0;
+	btn = mraa_gpio_init(3);
+	tempSensor = mraa_aio_init(0);
+	mraa_gpio_dir(btn, MRAA_GPIO_IN);
+	static const struct option long_opts[] =
+	{
+        	{"log",required_argument,NULL,'l',},
+        	{"scale",required_argument,NULL,'s'},
+       		{"period",required_argument,NULL,'p'},
+        	{0, 0, 0, 0} // end of array
+	};
 
-    int option_index = 0;
-    while((optParse = getopt_long(argc, argv, "i:o:sc:", long_options, &option_index)) != -1){
-      switch (optParse)
-        {
-        case 'p':
-          perFlag = 1;
-          peropt = optarg;
-          break;
-        case 's':
-          scaleFlag = 1;
-          scaleopt = optarg[0];
-          break;
-	case 'l':
-	  logFlag = 1;
-	  logopt = optarg;
-	  break;
-        default:
-          fprintf(stderr, "Proper usage of options: --threads=#threads, --iterations=#iterations, --yield=location, --sync=test --list=#lists\n");
-          exit(1);
-        }
-    }
 
-    if (perFlag)
-	perNum = atoi(peropt);
-    if (scaleFlag)
-    {
-    }
-    if (logFlag)
-    {
-	    int ofd = creat(outopt, 0666);
-	    if (ofd >= 0) {
-	    	close(1);
-		dup(ofd);
-		close(ofd);
- 	    } else {
-		fprintf(stderr, "Failed to create output file. %s\n", strerror(errno));
-		exit(2);
+
+	while (-1 != (opt = getopt_long(argc, argv, "", long_opts, NULL))) 
+	{
+    	switch (opt) {
+        	case 'l':
+        		l_flag=1;
+        		lfd = fopen(optarg, "w");
+            	break;
+        	case 's': 
+        		if(optarg)
+	            break;
+	        case 'p':
+	        	per = atoi(optarg);
+	        	break;
+        	default:
+        		fprintf(stderr, "INVALID OPTION(S)\nCorrect Usage: --log=\"logfile\" --scale=C --period=500\nTerminating...\n");
+	         	exit(1);
 	    }
-    }
-    
-    exit(0);
+	}
+
+	
+  	
+	fd[0].fd = STDIN_FILENO;
+	fd[0].events = POLLIN | POLLHUP | POLLERR;
+
+	while(1)
+  	{	
+		int val = poll(fd, 1, 0);
+		if (val > 0 ) {
+
+		if (fd[0].revents & POLLIN) {	
+  			char commandBuffer[1024];
+			char c;
+			int buffIndex = 0;
+	  		while (1)
+			{
+				if(read(0, &c, 1)>0)
+  				{
+					if (c == '\n')
+					{
+						commandBuffer[buffIndex] = '\0';
+						buffIndex = 0; 
+						break;
+					}
+					commandBuffer[buffIndex] = c;
+					buffIndex++;	
+				}
+			}
+  			if(strcmp(commandBuffer,"OFF") == 0)
+  			{
+  				stop_flag=1;
+  				shutdown_flag=1;
+  				if(l_flag==1)
+  				{
+  					fprintf(lfd,"SHUTDOWN\n");
+  					fflush(lfd);
+  					fclose(lfd);
+  				}
+  				fprintf(stdout,"SHUTDOWN\n");
+  				break;
+  			}
+  				else if(strcmp(commandBuffer, "STOP")==0)
+  				{
+	  				if(l_flag==1)
+  					{
+  						fprintf(lfd,"STOP\n");
+  						fflush(lfd);
+  					}
+	  				if(stop_flag==0)
+  					{
+  						stop_flag=1;
+  					}
+  				}	
+  				else if(strcmp(commandBuffer, "START")==0)
+  				{
+  					if(l_flag==1)
+  					{
+  						fprintf(lfd, "START\n");
+  						fflush(lfd);
+  					}
+  					if(stop_flag==1)
+  					{
+  						stop_flag=0;
+  					}
+
+  				}
+	  			else if(strcmp(commandBuffer,"SCALE=F")==0)
+  				{
+  					fprintf(stdout,"SCALE=F\n");
+  					if(l_flag==1)
+  					{
+  						fprintf(lfd, "SCALE=F\n");
+  						fflush(lfd);
+  					}
+  					temp_type=0;
+
+  				}
+  				else if(strcmp(commandBuffer,"SCALE=C")==0)
+  				{
+  					fprintf(stdout,"SCALE=C\n");
+  					if(l_flag==1)
+  					{
+  						fprintf(lfd, "SCALE=C\n");
+  						fflush(lfd);
+  					}
+  					temp_type=1;
+  				}
+				else if (strncmp(commandBuffer, "PERIOD=", 7) == 0) {
+					int j = atoi(commandBuffer+7);
+					if (j>0)
+						per = j;
+				}
+
+		}
+		}
+  		if (stop_flag == 0)
+		{
+			printer();
+		}	
+	}
+
+  	exit(0);
 }
