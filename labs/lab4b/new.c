@@ -139,8 +139,10 @@ tempSensor = mraa_aio_init(0);
 
 	while(1)
   	{	
-		printer();
+		//printer();
 		int val = poll(fd, 1, 0);
+		if (val > 0 ) {
+
 		if (fd[0].revents & POLLIN) {	
   			char commandBuffer[1024];
 			char c;
@@ -215,7 +217,10 @@ tempSensor = mraa_aio_init(0);
   					;//fprintf()
   				}
 		}
-  	}
+		}
+  		if (stop_flag == 0)
+			printer();	
+	}
 
   	exit(0);
 }
