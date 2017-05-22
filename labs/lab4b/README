@@ -25,3 +25,4 @@ CS111 TA Slides
 "aio.h", iotdk.intel.com, https://iotdk.intel.com/docs/master/mraa/aio_8h.html
 "gpio.h File Reference" , iotdk.intel.com, https://iotdk.intel.com/docs/master/mraa/gpio_8h.html
 "Configuring date and time zone", coreos.com,  https://coreos.com/os/docs/latest/configuring-date-and-timezone.html
+"time(2) - Linux man page", linux.die.net, https://linux.die.net/man/2/time

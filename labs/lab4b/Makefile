@@ -7,10 +7,7 @@ default:
 	gcc -lmraa -lm -g -o lab4b lab4b.c
 
 check:
-	./lab4b > out & 
-		#pid=$$!;\
-		#sleep 2;\
-		#kill $$pid
+	./lab4b 
 
 clean:
 	@rm -f lab4b *.txt *.tar.gzw

@@ -12,6 +12,7 @@
 #include <getopt.h>
 #include <time.h>
 #include <poll.h>
+#include <errno.h>
 
 float tempC,tempF;
 int tempType=0;
@@ -32,7 +33,13 @@ int logFlag = 0;
 time_t curr;
 time_t prev = 0;
 
-void* printer()
+void sysFailed(char* sysCall, int exitNum)
+{
+	fprintf(stderr, "%s failed: %s\n", sysCall, strerror(errno));
+	exit(exitNum);
+}
+
+void* tempPrint()
 {
 	rawTemperature = mraa_aio_read(tempSensor);
 	double R = 1023.0/((double)rawTemperature) - 1.0;
@@ -241,7 +248,7 @@ int main(int argc, char** argv)
 		
   		if (stopFlag == 0 && (curr-prev >= perNum))
 		{	
-			printer();
+			tempPrint();
 			prev = curr;
 		}	
 	}
