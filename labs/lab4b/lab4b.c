@@ -28,7 +28,10 @@ int rawTemperature;
 int btnVal = 0; 
 int stopFlag = 0;
 int shutdownFlag = 0;
-int logFlag = 0; 
+int logFlag = 0;
+time_t curr;
+time_t prev = 0;
+
 
 
 void* printer()
@@ -77,8 +80,6 @@ void* printer()
 		exit(0);
 	}
 
-	sleep(perNum);
-
 	if(shutdownFlag==1)
 		exit(0);
 }
@@ -92,6 +93,7 @@ int main(int argc, char** argv)
 	char* scaleopt = NULL;
 	char* peropt = NULL;
 	btn = mraa_gpio_init(3);
+	
 	
 	tempSensor = mraa_aio_init(0);
 	mraa_gpio_dir(btn, MRAA_GPIO_IN);
@@ -144,9 +146,9 @@ int main(int argc, char** argv)
 
 	fd[0].fd = STDIN_FILENO;
 	fd[0].events = POLLIN | POLLHUP | POLLERR;
-
 	while(1)
-  	{	
+  	{
+		curr = time(NULL);	
 		int val = poll(fd, 1, 0);
 
 		if (fd[0].revents & POLLIN) 
@@ -239,9 +241,11 @@ int main(int argc, char** argv)
 			}
 	
 		}
-  		if (stopFlag == 0)
+		
+  		if (stopFlag == 0 && (curr-prev >= perNum))
 		{	
 			printer();
+			prev = curr;
 		}	
 	}
 
