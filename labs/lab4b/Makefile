@@ -1,16 +1,18 @@
-#Name: Tanzeela Khan
+#NAME: Tanzeela Khan
 #EMAIL: tanzeelakhan@g.ucla.edu
 #ID: 204577214
 
 
-build:
+default:
 	gcc -lmraa -lm -g -o lab4b lab4b.c
 
 check:
-	./lab4b
+	./lab4b > out & 
+		#pid=$$!;\
+		#sleep 2;\
+		#kill $$pid
 
 clean:
-
 	@rm -f lab4b *.txt *.tar.gzw
 
 dist:

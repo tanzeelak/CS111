@@ -32,8 +32,6 @@ int logFlag = 0;
 time_t curr;
 time_t prev = 0;
 
-
-
 void* printer()
 {
 	rawTemperature = mraa_aio_read(tempSensor);
@@ -92,9 +90,8 @@ int main(int argc, char** argv)
 	char* logopt = NULL;
 	char* scaleopt = NULL;
 	char* peropt = NULL;
+
 	btn = mraa_gpio_init(3);
-	
-	
 	tempSensor = mraa_aio_init(0);
 	mraa_gpio_dir(btn, MRAA_GPIO_IN);
 	
@@ -172,9 +169,9 @@ int main(int argc, char** argv)
 			}
   			if(strcmp(commBuff,"OFF") == 0)
   			{
-  				stopFlag=1;
-  				shutdownFlag=1;
-  				if(logFlag==1)
+  				stopFlag = 1;
+  				shutdownFlag = 1;
+  				if(logFlag == 1)
   				{
   					fprintf(lfd,"OFF\nSHUTDOWN\n");
   					fflush(lfd);
@@ -183,40 +180,40 @@ int main(int argc, char** argv)
   				fprintf(stdout,"SHUTDOWN\n");
   				break;
   			}
-  			else if(strcmp(commBuff, "STOP")==0)
+  			else if(strcmp(commBuff, "STOP") == 0)
   			{
-	  			if(logFlag==1)
+	  			if(logFlag == 1)
   				{
   					fprintf(lfd,"STOP\n");
   					fflush(lfd);
   				}
-	  			if(stopFlag==0)
+	  			if(stopFlag == 0)
   				{
-  					stopFlag=1;
+  					stopFlag = 1;
   				}
   			}	
   			else if(strcmp(commBuff, "START")==0)
   			{
-  				if(logFlag==1)
+  				if(logFlag == 1)
   				{
   					fprintf(lfd, "START\n");
   					fflush(lfd);
   				}
-  				if(stopFlag==1)
+  				if(stopFlag == 1)
   				{
-  					stopFlag=0;
+  					stopFlag = 0;
   				}
 
 			}
-  			else if(strcmp(commBuff,"SCALE=F")==0)
+  			else if(strcmp(commBuff,"SCALE=F") == 0)
   			{
   				fprintf(stdout,"SCALE=F\n");
-  				if(logFlag==1)
+  				if(logFlag == 1)
   				{
   					fprintf(lfd, "SCALE=F\n");
   					fflush(lfd);
   				}
-  				tempType=0;
+  				tempType = 0;
 
 			}
  			else if(strcmp(commBuff,"SCALE=C")==0)
