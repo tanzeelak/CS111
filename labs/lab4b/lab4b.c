@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 		       	peropt = optarg;	
 	        	break;
         	default:
-        		fprintf(stderr, "Proper usage of options: --log=logfile --scale=tempType --period=#periods \n");
+        		fprintf(stderr, "Proper usage of options: --log=logfile --scale=C/F --period=# \n");
 	         	exit(1);
 	    }
 	}
