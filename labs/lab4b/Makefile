@@ -1,16 +1,17 @@
-#Name: Tanzeela Khan
+#NAME: Tanzeela Khan
 #EMAIL: tanzeelakhan@g.ucla.edu
 #ID: 204577214
 
-CC=gcc
-CFLAGS = -g
 
+default:
+	gcc -lmraa -lm -g -o lab4b lab4b.c
 
-build:
-	gcc -pthread -g -lrt -std=gnu99 -o lab4b lab4b.c
+check:
+	chmod +x test.sh
+	./test.sh 204577214
 
 clean:
-	@rm -f lab2_list *.txt *.tar.gzw *.csv
+	@rm -f lab4b *.txt *.tar.gzw
 
 dist:
-	@tar -zcvf lab2b-204577214.tar.gz lab2_list.c SortedList.c SortedList.h lab2b_list.csv lab2_list.gp profile.out *.png Makefile README
+	@tar -zcvf lab4b-204577214.tar.gz lab4b lab4b.c test.sh Makefile README
