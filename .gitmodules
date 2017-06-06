@@ -1,6 +1,3 @@
 [submodule "labs/CS111-P3A"]
 	path = labs/lab3a
 	url = https://github.com/tanzeelak/CS111-P3A
-[submodule "labs/CS111-P3B"]
-	path = labs/lab3b
-	url = https://github.com/tanzeelak/CS111-P3B
