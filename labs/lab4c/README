@@ -1,0 +1,28 @@
+NAME: Tanzeela Khan
+EMAIL: tanzeelakhan@g.ucla.edu
+ID: 204577214
+
+---FILES---
+
+lab4b.c: Uses AIO functions of MRAA library to output readings from Grove
+temperature and current times. The executable can be run with
+options,--period, --log, --scale. --period specifies the wait time between
+outputting recordings (default is 1 second). --log specifies whether output
+will also be written to a logfile. --scale determines temperature in celcius
+or farenheight (default is F). In parallel, the executable accepts commands OFF (shutdowns the program), STOP (causes program to stop generating reports but takes input), START (causes program to begin), SCALE=F/C (changes scale of program to farenheight or celsius), PERIOD=seconds (changes waittime). The program was implemented with polling. 
+
+Makefile: Builds and tests application with the following targets: default,
+check, clean, dist. 
+
+README: Includes information about student, describes included files in
+tar.gz, and cites sources. 
+
+
+---SOURCES---
+CS111 TA Slides
+"Grove - Temperature Sensor V1.2", wiki.seeed.cc, http://wiki.seeed.cc/Grove-Temperature_Sensor_V1.2/
+"mraa 1.7.0", iotdk.intel.com, https://iotdk.intel.com/docs/master/mraa/
+"aio.h", iotdk.intel.com, https://iotdk.intel.com/docs/master/mraa/aio_8h.html
+"gpio.h File Reference" , iotdk.intel.com, https://iotdk.intel.com/docs/master/mraa/gpio_8h.html
+"Configuring date and time zone", coreos.com,  https://coreos.com/os/docs/latest/configuring-date-and-timezone.html
+"time(2) - Linux man page", linux.die.net, https://linux.die.net/man/2/time
