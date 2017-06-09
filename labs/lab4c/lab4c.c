@@ -115,6 +115,7 @@ int main(int argc, char** argv)
 	char* idopt = NULL;
 	char* hostopt = NULL;
 
+	struct sockaddr_in serv_addr;
 	btn = mraa_gpio_init(3);
 	tempSensor = mraa_aio_init(0);
 	mraa_gpio_dir(btn, MRAA_GPIO_IN);
@@ -187,9 +188,20 @@ int main(int argc, char** argv)
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) {sysFailed("sockfd", 1);}
 
-/*	server = gethostbyname(hostopt);
+	server = gethostbyname(hostname);
 	if (server == NULL){sysFailed("server",1);}
-*/
+
+	memset((char *) &serv_addr, 0, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+
+	memmove((char *) &serv_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
+	serv_addr.sin_port = htons(portno);
+
+	/* Now connect to the server */
+	if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+	  perror("ERROR connecting");
+	  exit(1);
+	}
 	
 
 	fd[0].fd = STDIN_FILENO;
