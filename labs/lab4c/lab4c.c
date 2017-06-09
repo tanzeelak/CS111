@@ -126,6 +126,7 @@ int main(int argc, char** argv)
         	{"scale",required_argument,0,'s'},
        		{"period",required_argument,0,'p'},
 		{"port",no_argument,0,'o'},
+		{"id", required_argument,0,'i'},
 		{"host",required_argument,0,'h'},
 		{0, 0, 0, 0}
 	};
@@ -147,6 +148,10 @@ int main(int argc, char** argv)
 			perFlag = 1;
 		       	peropt = optarg;	
 	        	break;
+		case 'i':
+			idFlag = 1;
+			idopt = optarg;
+			break;
 		case 'h':
 			hostFlag = 1;
 			hostopt = optarg;
@@ -195,13 +200,16 @@ int main(int argc, char** argv)
 	serv_addr.sin_family = AF_INET;
 
 	memmove((char *) &serv_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
-	serv_addr.sin_port = htons(portno);
+	serv_addr.sin_port = htons(tcpPort);
 
 	/* Now connect to the server */
 	if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
 	  perror("ERROR connecting");
 	  exit(1);
 	}
+	
+
+	if (write(sockfd, idopt, strlen(idopt)+1) <0){sysFailed("sockfd", 1);}
 	
 
 	fd[0].fd = STDIN_FILENO;
