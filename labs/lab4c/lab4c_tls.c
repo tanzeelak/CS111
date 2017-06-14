@@ -19,6 +19,7 @@
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
 
+
 float tempC,tempF;
 int tempType=0;
 FILE* lfd;
@@ -45,7 +46,7 @@ int tlsPort = 19000;
 struct hostent *server;
 char* hostname = "lever.cs.ucla.edu";
 const int SSLSOCKET = 0;
-SSL *ssl;
+SSL* ssl;
 
 void sysFailed(char* sysCall, int exitNum)
 {
@@ -68,12 +69,14 @@ void* tempPrint()
 	if (tempType == 0)
 	{
 		fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
+		dprintf(sockfd,"%s %.1f\n", timeBuffer, tempF);
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempF);
 	}
 	else 
 	{
 		fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
+		dprintf(sockfd,"%s %.1f\n", timeBuffer, tempC);
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempC);
 	}
@@ -102,6 +105,7 @@ void* tempPrint()
 
 	if(shutdownFlag==1)
 	{
+		dprintf(sockfd, "SHUTDOWN\n");
 		close(sockfd);
 		exit(0);
 	}
@@ -221,32 +225,28 @@ int main(int argc, char** argv)
 	}
 	
 
-	//if (write(sockfd, idopt, strlen(idopt)+1) <0){sysFailed("sockfd", 1);}
-	
-
 	OpenSSL_add_all_algorithms();
 	SSL_load_error_strings();
-	if (SSL_library_init() < 0) sysFailed("ssl", 2);
+	if (SSL_library_init() <0)sysFailed("SSL_library_init",2);
 	SSL_CTX* ctx = SSL_CTX_new(TLSv1_client_method());
-	if (ctx = NULL)
-	{
-		fprintf(stderr, "Error creating SSL context");
-		exit(2);
-	}
-	ssl = SSL_new(ctx);
-	if (SSL_set_fd(ssl, sockfd) == 0)sysFailed("ssl", 2);
-	if (SSL_connect(ssl) != 1) sysFailed("ssl", 2);
+	if (ctx == NULL) sysFailed("ctx", 2);
 
+	ssl = SSL_new(ctx);
+	if (SSL_set_fd(ssl, sockfd) == 0) sysFailed("SSL_set_fd", 2);
+	if (SSL_connect(ssl) !=1) sysFailed;
 	X509 *cert = SSL_get_peer_certificate(ssl);
 	if (cert == NULL)
+		fprintf(stderr, "Error getting certificate from server\n");
+
+	char id_msg[14];
+	snprintf(id_msg,14, "ID=%s\n", idopt);
+	if (SSL_write(ssl, id_msg, strlen(id_msg)+1) == -1)
 	{
-		fprintf(stderr, "SSL_connect() failed\n");
+		fprintf(stderr, "Error writing id");
 		exit(2);
 	}
 
-	char id_msg[14];
-	snprintf(id_msg, 14, "ID=%s\n", idopt);
-	if (SSL_write(ssl, id_msg, strlen(id_msg)+1) == -1) sysFailed("ssl", 2);
+
 
 	dprintf(sockfd, "ID=%s\n", idopt);
 
@@ -282,13 +282,23 @@ int main(int argc, char** argv)
   			{
   				stopFlag = 1;
   				shutdownFlag = 1;
-  				if(logFlag == 1)
+
+  				time_t localTimer;
+				char timeString[10];
+				struct tm* localTimeInfo;
+
+				time(&localTimer);
+				localTimeInfo = localtime(&localTimer);
+				strftime(timeString, 10 , "%H:%M:%S", localTimeInfo);
+
+				if(logFlag == 1)
   				{
   					fprintf(lfd,"OFF\nSHUTDOWN\n");
   					fflush(lfd);
   					fclose(lfd);
   				}
-  				fprintf(stdout,"SHUTDOWN\n");
+  				fprintf(stdout,"%s SHUTDOWN\n", timeString);
+				dprintf(sockfd,"%s SHUTDOWN\n", timeString);
   				break;
   			}
 			
