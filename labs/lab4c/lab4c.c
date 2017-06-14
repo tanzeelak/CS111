@@ -83,7 +83,7 @@ void* tempPrint()
 	else if (btnVal == 1)
 	{
 		shutdownFlag = 1;
-		fprintf(stdout, "SHUTDOWN\n");
+		dprintf(sockfd, "SHUTDOWN\n");
 		if (logFlag == 1)
 		{
 			fprintf(lfd, "SHUTDOWN\n");
@@ -223,6 +223,7 @@ int main(int argc, char** argv)
 
 		if (fd[0].revents & POLLIN) 
 		{	
+			FILE* fdf = fdopen(sockfd, "r");
   			char commBuff[1024];
 			char c;
 			int buffIndex = 0;
@@ -240,6 +241,7 @@ int main(int argc, char** argv)
 					buffIndex++;	
 				}
 			}
+			
   			if(strcmp(commBuff,"OFF") == 0)
   			{
   				stopFlag = 1;
@@ -253,7 +255,7 @@ int main(int argc, char** argv)
   				fprintf(stdout,"SHUTDOWN\n");
   				break;
   			}
-  			else if(strcmp(commBuff, "STOP") == 0)
+			else if(strcmp(commBuff, "STOP") == 0)
   			{
 	  			if(logFlag == 1)
   				{
