@@ -4,8 +4,7 @@
 
 
 default: tcp tls
-	#gcc -lmraa -lm -g -o lab4c_tcp lab4c_tcp.c
-	#gcc -lmraa -lm -lssl -lcrypto -g -o lab4c_tls lab4c_tls.c
+
 tcp:
 	gcc -lmraa -lm -g -o lab4c_tcp lab4c_tcp.c
 

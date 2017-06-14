@@ -293,6 +293,7 @@ int main(int argc, char** argv)
 
   				time_t localTimer;
 				char timeString[10];
+				char rep[20];
 				struct tm* localTimeInfo;
 
 				time(&localTimer);
@@ -305,9 +306,11 @@ int main(int argc, char** argv)
   					fflush(lfd);
   					fclose(lfd);
   				}
-  				fprintf(stdout,"%s SHUTDOWN\n", timeString);
-				dprintf(sockfd,"%s SHUTDOWN\n", timeString);
-  				break;
+  			
+				sprintf(rep, "%s SHUTDOWN\n", timeString);
+				fprintf(stdout,"%s SHUTDOWN\n", timeString);
+  				SSL_write(ssl, rep, strlen(rep));
+				break;
   			}
 			
 			if(strcmp(commBuff, "STOP") == 0)
