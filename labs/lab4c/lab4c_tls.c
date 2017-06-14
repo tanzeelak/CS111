@@ -66,17 +66,22 @@ void* tempPrint()
 	timeInfo = localtime(&timer);
 	strftime(timeBuffer, 9, "%H:%M:%S", timeInfo);
 	
+	char rep[20];
 	if (tempType == 0)
 	{
-		fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
-		dprintf(sockfd,"%s %.1f\n", timeBuffer, tempF);
+		sprintf(rep, "%s %.1f\n", timeBuffer, tempF);
+		//fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
+		//dprintf(sockfd,"%s %.1f\n", timeBuffer, tempF);
+		SSL_write(ssl, rep, strlen(rep)+1);
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempF);
 	}
 	else 
 	{
-		fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
-		dprintf(sockfd,"%s %.1f\n", timeBuffer, tempC);
+		sprintf(rep, "%s %.1f\n", timeBuffer, tempC);
+		//fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
+		//dprintf(sockfd,"%s %.1f\n", timeBuffer, tempC);
+		SSL_write(ssl, rep, strlen(rep)+1);
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempC);
 	}
@@ -93,19 +98,23 @@ void* tempPrint()
 	else if (btnVal == 1)
 	{
 		shutdownFlag = 1;
-		dprintf(sockfd, "SHUTDOWN\n");
+		sprintf(rep, "SHUTDOWN\n");
+		SSL_write(ssl, rep, strlen(rep)+1);
+		//dprintf(sockfd, "SHUTDOWN\n");
 		if (logFlag == 1)
 		{
 			fprintf(lfd, "SHUTDOWN\n");
 			fflush(lfd);
 		}
-		close(sockfd);
+		//close(sockfd);
 		exit(0);
 	}
 
 	if(shutdownFlag==1)
 	{
-		dprintf(sockfd, "SHUTDOWN\n");
+		sprintf(rep, "SHUTDOWN\n");
+		SSL_write(ssl, rep, strlen(rep)+1);
+		//dprintf(sockfd, "SHUTDOWN\n");
 		close(sockfd);
 		exit(0);
 	}
@@ -265,7 +274,7 @@ int main(int argc, char** argv)
 			int buffIndex = 0;
 	  		while (1)
 			{
-				if(read(sockfd, &c, 1)>0)
+				if(SSL_read(ssl, &c, 1)>0)
   				{
 					if (c == '\n')
 					{
