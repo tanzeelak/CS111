@@ -255,9 +255,8 @@ int main(int argc, char** argv)
 		exit(2);
 	}
 
-
-
-	dprintf(sockfd, "ID=%s\n", idopt);
+	
+	//dprintf(sockfd, "ID=%s\n", idopt);
 
 	fd[0].fd = sockfd;
 	fd[0].events = POLLIN | POLLHUP | POLLERR;
