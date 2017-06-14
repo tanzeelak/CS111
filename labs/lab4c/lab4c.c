@@ -209,8 +209,10 @@ int main(int argc, char** argv)
 	}
 	
 
-	if (write(sockfd, idopt, strlen(idopt)+1) <0){sysFailed("sockfd", 1);}
+	//if (write(sockfd, idopt, strlen(idopt)+1) <0){sysFailed("sockfd", 1);}
 	
+
+	dprintf(sockfd, "ID=%s\n", idopt);
 
 	fd[0].fd = STDIN_FILENO;
 	fd[0].events = POLLIN | POLLHUP | POLLERR;
