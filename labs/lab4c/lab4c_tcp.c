@@ -103,6 +103,7 @@ void* tempPrint()
 
 	if(shutdownFlag==1)
 	{
+		dprintf(sockfd, "SHUTDOWN\n");
 		close(sockfd);
 		exit(0);
 	}
@@ -279,13 +280,23 @@ int main(int argc, char** argv)
   			{
   				stopFlag = 1;
   				shutdownFlag = 1;
-  				if(logFlag == 1)
+
+  				time_t localTimer;
+				char timeString[10];
+				struct tm* localTimeInfo;
+
+				time(&localTimer);
+				localTimeInfo = localtime(&localTimer);
+				strftime(timeString, 10 , "%H:%M:%S", localTimeInfo);
+
+				if(logFlag == 1)
   				{
   					fprintf(lfd,"OFF\nSHUTDOWN\n");
   					fflush(lfd);
   					fclose(lfd);
   				}
-  				fprintf(stdout,"SHUTDOWN\n");
+  				fprintf(stdout,"%s SHUTDOWN\n", timeString);
+				dprintf(sockfd,"%s SHUTDOWN\n", timeString);
   				break;
   			}
 			
