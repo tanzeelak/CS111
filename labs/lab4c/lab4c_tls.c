@@ -72,7 +72,7 @@ void* tempPrint()
 		sprintf(rep, "%s %.1f\n", timeBuffer, tempF);
 		//fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
 		//dprintf(sockfd,"%s %.1f\n", timeBuffer, tempF);
-		SSL_write(ssl, rep, strlen(rep)+1);
+		SSL_write(ssl, rep, strlen(rep));
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempF);
 	}
@@ -81,7 +81,7 @@ void* tempPrint()
 		sprintf(rep, "%s %.1f\n", timeBuffer, tempC);
 		//fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
 		//dprintf(sockfd,"%s %.1f\n", timeBuffer, tempC);
-		SSL_write(ssl, rep, strlen(rep)+1);
+		SSL_write(ssl, rep, strlen(rep));
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempC);
 	}
@@ -99,7 +99,7 @@ void* tempPrint()
 	{
 		shutdownFlag = 1;
 		sprintf(rep, "SHUTDOWN\n");
-		SSL_write(ssl, rep, strlen(rep)+1);
+		SSL_write(ssl, rep, strlen(rep));
 		//dprintf(sockfd, "SHUTDOWN\n");
 		if (logFlag == 1)
 		{
@@ -113,7 +113,7 @@ void* tempPrint()
 	if(shutdownFlag==1)
 	{
 		sprintf(rep, "SHUTDOWN\n");
-		SSL_write(ssl, rep, strlen(rep)+1);
+		SSL_write(ssl, rep, strlen(rep));
 		//dprintf(sockfd, "SHUTDOWN\n");
 		close(sockfd);
 		exit(0);
@@ -249,7 +249,7 @@ int main(int argc, char** argv)
 
 	char id_msg[14];
 	snprintf(id_msg,14, "ID=%s\n", idopt);
-	if (SSL_write(ssl, id_msg, strlen(id_msg)+1) == -1)
+	if (SSL_write(ssl, id_msg, strlen(id_msg)) == -1)
 	{
 		fprintf(stderr, "Error writing id");
 		exit(2);
