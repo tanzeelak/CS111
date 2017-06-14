@@ -67,12 +67,14 @@ void* tempPrint()
 	if (tempType == 0)
 	{
 		fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
+		dprintf(sockfd,"%s %.1f\n", timeBuffer, tempF);
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempF);
 	}
 	else 
 	{
 		fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
+		dprintf(sockfd,"%s %.1f\n", timeBuffer, tempC);
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempC);
 	}
