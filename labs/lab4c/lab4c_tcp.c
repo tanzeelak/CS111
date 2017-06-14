@@ -66,14 +66,14 @@ void* tempPrint()
 	
 	if (tempType == 0)
 	{
-		fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
+	//	fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
 		dprintf(sockfd,"%s %.1f\n", timeBuffer, tempF);
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempF);
 	}
 	else 
 	{
-		fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
+	//	fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
 		dprintf(sockfd,"%s %.1f\n", timeBuffer, tempC);
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempC);
@@ -197,18 +197,13 @@ int main(int argc, char** argv)
 	{
 		idNum = atoi(idopt);	
 	}
-	if (hostFlag)
-	{
-		//hostNum = atoi(hostopt);
-	}
-
 
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0) {sysFailed("sockfd", 1);}
+	if (sockfd < 0) {sysFailed("sockfd", 2);}
 
 	server = gethostbyname(hostname);
-	if (server == NULL){sysFailed("server",1);}
+	if (server == NULL){sysFailed("server", 2);}
 
 	memset((char *) &serv_addr, 0, sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
@@ -219,32 +214,9 @@ int main(int argc, char** argv)
 	/* Now connect to the server */
 	if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
 	  perror("ERROR connecting");
-	  exit(1);
+	  exit(2);
 	}
 	
-/*
-	OPENSSL_add_all_algorithms();
-	SSL_load_error_strings();
-	if (SSL_library_init() <0)sysFailed("SSL_library_init",2);
-	SSL_CTX* ctx = SSL_CTX_new(TSLv1_client_method());
-	if (ctx == NULL) sysFailed("ctx", 2);
-
-	ssl = SSL_new(ctx);
-	if (SSL_set_fd(ssl, sockfd) == 0) sysFailed("SSL_set_fd", 2);
-	if (SSL_connect(ssl) !=1) sysFailed;
-	X509 8cert = SSL_get_peer_certificate(ssl);
-	if (cert == NULL)
-		fprintf(stderr, "Error getting certificate from server\n");
-
-	char id_msg[14];
-	snprintf(id_msg,14, "ID=%s\n", id);
-	if (SSL_write(ssl, id_msg, strlen(id_msg)+1) == -1)
-	{
-		fprintf(stderr, "Error writing id");
-		exit(2);
-	}
-*/	
-
 
 	dprintf(sockfd, "ID=%s\n", idopt);
 
@@ -295,7 +267,7 @@ int main(int argc, char** argv)
   					fflush(lfd);
   					fclose(lfd);
   				}
-  				fprintf(stdout,"%s SHUTDOWN\n", timeString);
+//  				fprintf(stdout,"%s SHUTDOWN\n", timeString);
 				dprintf(sockfd,"%s SHUTDOWN\n", timeString);
   				break;
   			}
@@ -316,7 +288,7 @@ int main(int argc, char** argv)
   			{
   				if(logFlag == 1)
   				{
-  					fprintf(lfd, "START\n");
+  //					fprintf(lfd, "START\n");
   					fflush(lfd);
   				}
   				if(stopFlag == 1)
@@ -327,7 +299,7 @@ int main(int argc, char** argv)
 			}
   			else if(strcmp(commBuff,"SCALE=F") == 0)
   			{
-  				fprintf(stdout,"SCALE=F\n");
+  //				fprintf(stdout,"SCALE=F\n");
   				if(logFlag == 1)
   				{
   					fprintf(lfd, "SCALE=F\n");
@@ -338,7 +310,7 @@ int main(int argc, char** argv)
 			}
  			else if(strcmp(commBuff,"SCALE=C")==0)
   			{
-  				fprintf(stdout,"SCALE=C\n");
+  //				fprintf(stdout,"SCALE=C\n");
   				if(logFlag==1)
   				{
   					fprintf(lfd, "SCALE=C\n");

@@ -308,7 +308,7 @@ int main(int argc, char** argv)
   				}
   			
 				sprintf(rep, "%s SHUTDOWN\n", timeString);
-//				fprintf(stdout,"%s SHUTDOWN\n", timeString);
+				fprintf(stdout,"%s SHUTDOWN\n", timeString);
   				SSL_write(ssl, rep, strlen(rep));
 				break;
   			}

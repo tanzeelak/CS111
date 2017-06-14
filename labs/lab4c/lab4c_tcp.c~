@@ -41,12 +41,10 @@ time_t prev = 0;
 
 int sockfd = 0;
 int tcpPort = 18000;
-int tlsPort = 19000;
 //struct sock_addr_in serveradd;
 struct hostent *server;
 char* hostname = "lever.cs.ucla.edu";
-const int SSLSOCKET = 0;
-SSL* ssl;
+
 
 void sysFailed(char* sysCall, int exitNum)
 {
@@ -66,22 +64,17 @@ void* tempPrint()
 	timeInfo = localtime(&timer);
 	strftime(timeBuffer, 9, "%H:%M:%S", timeInfo);
 	
-	char rep[20];
 	if (tempType == 0)
 	{
-		sprintf(rep, "%s %.1f\n", timeBuffer, tempF);
-		//fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
-		//dprintf(sockfd,"%s %.1f\n", timeBuffer, tempF);
-		SSL_write(ssl, rep, strlen(rep));
+		fprintf(stdout,"%s %.1f\n", timeBuffer, tempF);
+		dprintf(sockfd,"%s %.1f\n", timeBuffer, tempF);
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempF);
 	}
 	else 
 	{
-		sprintf(rep, "%s %.1f\n", timeBuffer, tempC);
-		//fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
-		//dprintf(sockfd,"%s %.1f\n", timeBuffer, tempC);
-		SSL_write(ssl, rep, strlen(rep));
+		fprintf(stdout,"%s %.1f\n", timeBuffer, tempC);
+		dprintf(sockfd,"%s %.1f\n", timeBuffer, tempC);
 		if (logFlag)
 			fprintf(lfd, "%s %.1f\n", timeBuffer, tempC);
 	}
@@ -98,23 +91,19 @@ void* tempPrint()
 	else if (btnVal == 1)
 	{
 		shutdownFlag = 1;
-		sprintf(rep, "SHUTDOWN\n");
-		SSL_write(ssl, rep, strlen(rep));
-		//dprintf(sockfd, "SHUTDOWN\n");
+		dprintf(sockfd, "SHUTDOWN\n");
 		if (logFlag == 1)
 		{
 			fprintf(lfd, "SHUTDOWN\n");
 			fflush(lfd);
 		}
-		//close(sockfd);
+		close(sockfd);
 		exit(0);
 	}
 
 	if(shutdownFlag==1)
 	{
-		sprintf(rep, "SHUTDOWN\n");
-		SSL_write(ssl, rep, strlen(rep));
-		//dprintf(sockfd, "SHUTDOWN\n");
+		dprintf(sockfd, "SHUTDOWN\n");
 		close(sockfd);
 		exit(0);
 	}
@@ -225,7 +214,7 @@ int main(int argc, char** argv)
 	serv_addr.sin_family = AF_INET;
 
 	memmove((char *) &serv_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
-	serv_addr.sin_port = htons(tlsPort);
+	serv_addr.sin_port = htons(tcpPort);
 
 	/* Now connect to the server */
 	if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
@@ -233,30 +222,31 @@ int main(int argc, char** argv)
 	  exit(1);
 	}
 	
-
-	OpenSSL_add_all_algorithms();
+/*
+	OPENSSL_add_all_algorithms();
 	SSL_load_error_strings();
 	if (SSL_library_init() <0)sysFailed("SSL_library_init",2);
-	SSL_CTX* ctx = SSL_CTX_new(TLSv1_client_method());
+	SSL_CTX* ctx = SSL_CTX_new(TSLv1_client_method());
 	if (ctx == NULL) sysFailed("ctx", 2);
 
 	ssl = SSL_new(ctx);
 	if (SSL_set_fd(ssl, sockfd) == 0) sysFailed("SSL_set_fd", 2);
 	if (SSL_connect(ssl) !=1) sysFailed;
-	X509 *cert = SSL_get_peer_certificate(ssl);
+	X509 8cert = SSL_get_peer_certificate(ssl);
 	if (cert == NULL)
 		fprintf(stderr, "Error getting certificate from server\n");
 
 	char id_msg[14];
-	snprintf(id_msg,14, "ID=%s\n", idopt);
-	if (SSL_write(ssl, id_msg, strlen(id_msg)) == -1)
+	snprintf(id_msg,14, "ID=%s\n", id);
+	if (SSL_write(ssl, id_msg, strlen(id_msg)+1) == -1)
 	{
 		fprintf(stderr, "Error writing id");
 		exit(2);
 	}
+*/	
 
-	
-	//dprintf(sockfd, "ID=%s\n", idopt);
+
+	dprintf(sockfd, "ID=%s\n", idopt);
 
 	fd[0].fd = sockfd;
 	fd[0].events = POLLIN | POLLHUP | POLLERR;
@@ -273,7 +263,7 @@ int main(int argc, char** argv)
 			int buffIndex = 0;
 	  		while (1)
 			{
-				if(SSL_read(ssl, &c, 1)>0)
+				if(read(sockfd, &c, 1)>0)
   				{
 					if (c == '\n')
 					{
@@ -293,7 +283,6 @@ int main(int argc, char** argv)
 
   				time_t localTimer;
 				char timeString[10];
-				char rep[20];
 				struct tm* localTimeInfo;
 
 				time(&localTimer);
@@ -306,11 +295,9 @@ int main(int argc, char** argv)
   					fflush(lfd);
   					fclose(lfd);
   				}
-  			
-				sprintf(rep, "%s SHUTDOWN\n", timeString);
-//				fprintf(stdout,"%s SHUTDOWN\n", timeString);
-  				SSL_write(ssl, rep, strlen(rep));
-				break;
+  				fprintf(stdout,"%s SHUTDOWN\n", timeString);
+				dprintf(sockfd,"%s SHUTDOWN\n", timeString);
+  				break;
   			}
 			
 			if(strcmp(commBuff, "STOP") == 0)
