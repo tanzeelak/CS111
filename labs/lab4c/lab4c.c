@@ -89,12 +89,17 @@ void* tempPrint()
 			fprintf(lfd, "SHUTDOWN\n");
 			fflush(lfd);
 		}
+		close(sockfd);
 		exit(0);
 	}
 
 	if(shutdownFlag==1)
+	{
+		close(sockfd);
 		exit(0);
+	}
 }
+
 
 int main(int argc, char** argv)
 {
@@ -154,7 +159,7 @@ int main(int argc, char** argv)
 			break;
 		case 'h':
 			hostFlag = 1;
-			hostopt = optarg;
+			hostname = optarg;
 			break;
 		case 'o':
 			logFlag = 1;
@@ -185,7 +190,7 @@ int main(int argc, char** argv)
 	}
 	if (hostFlag)
 	{
-		hostNum = atoi(hostopt);
+		//hostNum = atoi(hostopt);
 	}
 
 
@@ -214,7 +219,7 @@ int main(int argc, char** argv)
 
 	dprintf(sockfd, "ID=%s\n", idopt);
 
-	fd[0].fd = STDIN_FILENO;
+	fd[0].fd = sockfd;
 	fd[0].events = POLLIN | POLLHUP | POLLERR;
 	while(1)
   	{
@@ -229,7 +234,7 @@ int main(int argc, char** argv)
 			int buffIndex = 0;
 	  		while (1)
 			{
-				if(read(0, &c, 1)>0)
+				if(read(sockfd, &c, 1)>0)
   				{
 					if (c == '\n')
 					{
@@ -255,7 +260,8 @@ int main(int argc, char** argv)
   				fprintf(stdout,"SHUTDOWN\n");
   				break;
   			}
-			else if(strcmp(commBuff, "STOP") == 0)
+			
+			if(strcmp(commBuff, "STOP") == 0)
   			{
 	  			if(logFlag == 1)
   				{
